@@ -1,223 +1,328 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#cf0d3d">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Route Card">
-<link rel="apple-touch-icon" href="icon.jpeg">
-<title>Route Card</title>
-<style>
-:root{
-  --bg:#f6f0e4;
-  --panel:#cf0d3d;
-  --panel2:#9f2c42;
-  --text:#fff8eb;
-  --muted:#f4e9da;
-  --xc:#cf0d3d;
-  --xc2:#a12c43;
-  --accent:#ffc21c;
-  --border:#ffffff;
-  --input:#f5f2ed;
-  --input-text:#5c5c5c;
-  --green:#2fbf71;
-  --amber:#ffc21c;
-  --red:#ef4444;
-}
-*{box-sizing:border-box} body{margin:0;background:#f6f0e4;color:#2f2f32;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#cf0d3d,#9f2c42);padding:calc(env(safe-area-inset-top) + 13px) 18px 13px;border-bottom:0;display:flex;align-items:center;justify-content:space-between}
-h1{margin:0;font-size:21px;letter-spacing:.4px;font-style:normal;color:#fff8eb}.sub{display:none}.xc-logo-img{display:block;height:42px;max-width:58%;object-fit:contain}
-main{padding:18px 14px 110px;max-width:760px;margin:auto}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.summary div{background:var(--panel2);border:0;border-radius:12px;padding:10px;text-align:center;font-size:12px}.summary b{display:block;font-size:21px;margin-bottom:3px}
-.route{background:var(--panel);border:1px solid #ffffff55;border-left:5px solid var(--green);border-radius:14px;margin:10px 0;overflow:hidden;box-shadow:0 3px 12px #7d183333}.route.yellow{border-left-color:var(--amber)}.route.red{border-left-color:var(--red)}
-.route-head{width:100%;border:0;background:transparent;color:inherit;text-align:left;padding:15px;display:grid;grid-template-columns:1fr auto;gap:8px;cursor:pointer}
-.name{font-size:18px;font-weight:700}.meta{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.45}.days{font-weight:800;font-size:17px;text-align:right}.badge{font-size:13px;margin-top:7px}
-.history{display:none;border-top:1px solid #ffffff66;padding:12px 15px 15px;background:#a92a45}.route.open .history{display:block}
-.history h3{margin:0 0 10px;font-size:15px}.entry{padding:10px 0;border-top:1px solid #2c303a}.entry:first-of-type{border-top:0}.entry b{display:block}.entry span{color:var(--muted);font-size:13px}
-.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-button,.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;background:var(--accent);color:#161616}.secondary{background:var(--panel2);color:white;border:1px solid #ffffff66}.danger{background:#84202c;color:white}.small{padding:8px 10px;font-size:12px}
-.fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 18px);width:58px;height:58px;border-radius:50%;font-size:30px;box-shadow:0 8px 30px #7a153d66;background:var(--accent)}
-dialog{width:min(94vw,500px);background:var(--xc);color:var(--text);border:1px solid #ffffff88;border-radius:18px;padding:18px}dialog::backdrop{background:#0009}
-label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}input,select{width:100%;padding:12px;border-radius:10px;border:0;background:var(--input);color:var(--input-text);font-size:16px}
-dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:18px 0 0}
-.empty{color:var(--muted);text-align:center;padding:30px}
-.top-actions{display:flex;gap:8px;margin:14px 0}.top-actions button{flex:1;font-size:12px}.bottom-actions{margin-top:20px;padding-top:16px;border-top:1px solid #d8c7b266}.print-btn{background:var(--xc)!important;color:white!important;font-size:14px!important}.management-actions{margin-top:8px;padding-top:8px;border-top:0}
-.status-key{margin-top:28px;background:var(--panel2);border:1px solid #ffffff66;border-radius:14px;color:#fff8eb;overflow:hidden}
-.status-key-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent!important;color:#fff8eb!important;padding:16px 18px;border-radius:0;text-align:left;font-size:18px!important}
-.status-chevron{font-size:24px;transition:transform .2s ease;line-height:1}
-.status-key:not(.collapsed) .status-chevron{transform:rotate(180deg)}
-.status-key-content{padding:0 16px 14px}
-.status-key.collapsed .status-key-content{display:none}
-.key-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #ffffff44}
-.key-dot{font-size:22px;line-height:1}
-.key-row strong{display:block;font-size:15px;color:#fff8eb}
-.key-row small{display:block;color:#f4e9da;margin-top:2px}
-
-@media print{
-  @page{size:A4 portrait;margin:12mm}
-  body{background:#fff!important;color:#222!important}
-  header{position:static!important;background:#a51d3b!important;color:white!important;padding:10px 14px!important}
-  main{max-width:none!important;padding:10px 0!important}
-  .fab,.top-actions,.actions,.small,dialog,input[type=file]{display:none!important}
-  .summary{display:grid!important}
-  .route{break-inside:avoid!important;margin:7px 0!important;box-shadow:none!important}
-  .route-head{cursor:default!important}
-  .history{display:block!important;color:#222!important;background:#fff!important;border-top:1px solid #aaa!important}
-  .entry{color:#222!important}
-  .meta,.entry span{color:#555!important}
-  .status-key{color:#222!important;background:#f3eee7!important}
-}
-
-
-/* Final global text treatment: white throughout the app */
-html, body, body * { color:#ffffff; }
-input, select, option { color:#ffffff !important; }
-input::placeholder { color:#ffffff !important; opacity:.78; }
-button { color:#ffffff !important; }
-.print-btn { color:#ffffff !important; }
-.status-key small { color:#ffffff !important; }
-@media print {
-  html, body, body * { color:#111 !important; }
-  header, header * { color:#fff !important; }
-}
-
-
-
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ca123f">
+  <meta name="description" content="Offline Route Card for recording diversion coverage and route history.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Route card</title>
+  <style>
+    :root{
+      --xc-red:#ca123f;
+      --xc-deep:#a72d48;
+      --xc-cream:#f8efe3;
+      --xc-paper:#ffffff;
+      --xc-ink:#22242a;
+      --xc-muted:#6d6e73;
+      --xc-teal:#16707c;
+      --xc-border:#e5dfd7;
+      --green:#168342; --amber:#c78a00; --red:#ca123f;
+      --shadow:0 10px 28px rgba(46,35,28,.12);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--xc-ink);background:linear-gradient(180deg,var(--xc-cream),#fff 40%) fixed}
+    body{padding-bottom:env(safe-area-inset-bottom)}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .app{max-width:980px;margin:auto;padding:18px 16px 48px}
+    header{background:linear-gradient(90deg,#ca123f,#ad163c);color:#fff;border-radius:0 0 28px 28px;box-shadow:var(--shadow);margin:-18px -16px 24px;padding:18px 20px 22px}
+    .brand{display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .brand img{height:32px;max-width:52%;object-fit:contain;object-position:left center}
+    .brand-copy{font-size:1.25rem;font-weight:800;letter-spacing:.01em}
+    .subtitle{margin:6px 0 0;opacity:.86;font-size:.92rem}
+    .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+    .btn{border:0;border-radius:12px;padding:12px 15px;font-weight:750;transition:.15s transform,.15s opacity;min-height:46px}
+    .btn:active{transform:scale(.98)}
+    .btn-light{background:#fff;color:var(--xc-red)}
+    .btn-red{background:var(--xc-red);color:#fff}
+    .btn-outline{background:#fff;border:1px solid var(--xc-border);color:var(--xc-ink)}
+    .btn-dark{background:#272b32;color:#fff}
+    .btn-ghost{background:transparent;color:var(--xc-red);border:1px solid rgba(202,18,63,.25)}
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 20px}
+    .metric{background:#fff;border:1px solid var(--xc-border);border-radius:var(--radius);padding:15px;box-shadow:0 5px 18px rgba(0,0,0,.04)}
+    .metric b{display:block;font-size:1.55rem;line-height:1.1}
+    .metric span{font-size:.78rem;color:var(--xc-muted)}
+    .alert{display:none;background:#fff7d8;border:1px solid #f0cf70;color:#6f5200;border-radius:14px;padding:12px 14px;margin:0 0 18px}
+    .alert.show{display:block}
+    .section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:24px 0 12px}
+    h2{font-size:1.1rem;margin:0}
+    .count{font-size:.82rem;color:var(--xc-muted)}
+    .route-list{display:grid;gap:12px}
+    .route{background:#fff;border:1px solid var(--xc-border);border-radius:18px;padding:16px;box-shadow:0 5px 18px rgba(0,0,0,.045)}
+    .route-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .route-name{font-size:1.06rem;font-weight:800}
+    .status{display:flex;align-items:center;gap:7px;font-size:.86rem;font-weight:800;white-space:nowrap}
+    .dot{width:12px;height:12px;border-radius:50%;display:inline-block;box-shadow:0 0 0 4px rgba(0,0,0,.04)}
+    .status.green .dot{background:var(--green)} .status.amber .dot{background:#f0b400} .status.red .dot{background:var(--red)}
+    .route-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;color:var(--xc-muted);font-size:.87rem}
+    .route-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .route-actions button{padding:9px 12px;border-radius:10px}
+    .empty{padding:28px 16px;text-align:center;border:2px dashed var(--xc-border);border-radius:18px;color:var(--xc-muted);background:#fff}
+    .admin{margin-top:34px;padding-top:22px;border-top:1px solid var(--xc-border)}
+    .admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    dialog{border:0;border-radius:22px;box-shadow:0 22px 70px rgba(0,0,0,.28);padding:0;width:min(94vw,560px);color:var(--xc-ink)}
+    dialog::backdrop{background:rgba(20,18,18,.55)}
+    .dialog-body{padding:20px}
+    .dialog-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
+    .icon-btn{border:0;background:#f3f0ed;border-radius:10px;width:40px;height:40px;font-size:1.25rem}
+    form{display:grid;gap:13px}
+    label{display:grid;gap:7px;font-size:.9rem;font-weight:700}
+    input,select{width:100%;border:1px solid #d9d5cf;border-radius:11px;padding:13px;background:#fff;color:var(--xc-ink);min-height:48px}
+    .hint{font-size:.78rem;color:var(--xc-muted);margin-top:-6px}
+    .form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:5px}
+    .history-list{display:grid;gap:10px}
+    .history-item{padding:12px 0;border-bottom:1px solid #ece8e2}
+    .history-item:last-child{border-bottom:0}
+    .history-main{font-weight:750}
+    .history-sub{color:var(--xc-muted);font-size:.85rem;margin-top:3px}
+    .install-note{font-size:.8rem;color:#f5e6e9;align-self:center}
+    .hidden{display:none!important}
+    @media(max-width:560px){.summary{gap:7px}.metric{padding:12px}.metric b{font-size:1.28rem}.brand img{height:26px}.admin-grid{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-<header><h1>Route Card</h1><img class="xc-logo-img" src="xc-white-logo.png" alt="CrossCountry"></header>
-<main>
-<div class="summary">
-<div><b id="greenCount">0</b>🟢 Current</div><div><b id="yellowCount">0</b>🟡 Due Soon</div><div><b id="redCount">0</b>🔴 Attention</div>
-</div>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <img src="xc-white-logo.png" alt="CrossCountry">
+        <div class="brand-copy">Route card</div>
+      </div>
+      <p class="subtitle">Diversion coverage record</p>
+      <div class="top-actions">
+        <button id="installBtn" class="btn btn-light hidden">Install app</button>
+        <button id="notifyBtn" class="btn btn-light">Enable reminders</button>
+        <span id="installNote" class="install-note">Works offline and stores data on this device.</span>
+      </div>
+    </header>
 
-<div id="routes"></div>
+    <section class="summary" aria-label="Route summary">
+      <div class="metric"><b id="totalCount">0</b><span>Routes</span></div>
+      <div class="metric"><b id="amberCount">0</b><span>92–182 days</span></div>
+      <div class="metric"><b id="redCount">0</b><span>183+ days</span></div>
+    </section>
 
-<section class="status-key collapsed" id="statusKey">
-  <button class="status-key-toggle" type="button" onclick="toggleStatusKey()" aria-expanded="false">
-    <span>Status Key</span><span class="status-chevron">⌄</span>
-  </button>
-  <div class="status-key-content">
-    <div class="key-row"><span class="key-dot">🟢</span><span><strong>0–91 days</strong><small>Green — Current</small></span></div>
-    <div class="key-row"><span class="key-dot">🟡</span><span><strong>92–150 days</strong><small>Amber/Yellow — Due Soon</small></span></div>
-    <div class="key-row"><span class="key-dot">🔴</span><span><strong>151+ days</strong><small>Red — Attention Required</small></span></div>
-  </div>
-</section>
+    <div id="reminderAlert" class="alert"></div>
 
-<div class="top-actions bottom-actions">
-  <button class="print-btn" onclick="printRouteCard()">Export / Print Route Card (PDF)</button>
-</div>
-<div class="top-actions bottom-actions management-actions">
-  <button class="secondary" onclick="manageRoutes()">Manage Routes</button>
-  <button class="secondary" onclick="exportData()">Export Backup</button>
-  <button class="secondary" onclick="importData()">Import</button>
-</div>
-</main>
-<button class="fab" onclick="openUpdate()" aria-label="Add coverage">＋</button>
+    <div class="section-head">
+      <div><h2>My route card</h2><div class="count">Days since each diversion was last covered</div></div>
+      <button id="addRouteBtn" class="btn btn-red">+ Add route</button>
+    </div>
+    <section id="routeList" class="route-list"></section>
 
-<dialog id="updateDialog">
-<form method="dialog" onsubmit="saveCoverage(event)">
-<h2 id="dialogTitle">Update Route</h2>
-<input type="hidden" id="routeId">
-<label>Route</label><select id="routeSelect" required></select>
-<label>Date covered</label><input id="date" type="date" required>
-<label>Method</label><select id="method" required>
-<option>Diversion</option><option>Booked Job</option><option>Booked RR Day</option><option>TAPS RR</option><option>Engineering Diversion</option><option>Other</option></select>
-<label>Headcode / Service used</label><input id="service" maxlength="4" placeholder="e.g. 1V50 or TAPS" required>
-<menu><button type="button" class="secondary" onclick="updateDialog.close()">Cancel</button><button type="submit">Save</button></menu>
-</form>
-</dialog>
+    <section class="admin">
+      <div class="section-head"><div><h2>Route card administration</h2><div class="count">Manage routes, history and local backups</div></div></div>
+      <div class="admin-grid">
+        <button id="historyBtn" class="btn btn-outline">View all route history</button>
+        <button id="pdfBtn" class="btn btn-outline">Export route card as PDF</button>
+        <button id="backupBtn" class="btn btn-outline">Export backup</button>
+        <label class="btn btn-outline" style="display:flex;align-items:center;justify-content:center;cursor:pointer">Import backup<input id="importInput" type="file" accept=".json,application/json" class="hidden"></label>
+      </div>
+    </section>
+  </main>
 
-<dialog id="manageDialog">
-<h2>Manage Routes</h2>
-<div id="manageList"></div>
-<label>Add new route</label><input id="newRoute" placeholder="Route name">
-<div class="actions"><button onclick="addRoute()">Add Route</button><button class="secondary" onclick="manageDialog.close()">Done</button></div>
-</dialog>
+  <dialog id="routeDialog">
+    <div class="dialog-body">
+      <div class="dialog-head"><h2 id="routeDialogTitle">Add route</h2><button class="icon-btn" data-close="routeDialog">×</button></div>
+      <form id="routeForm">
+        <input id="routeId" type="hidden">
+        <label>Route name<input id="routeName" required maxlength="80" placeholder="e.g. Newcastle Forth Banks"></label>
+        <div class="form-actions"><button type="button" class="btn btn-outline" data-close="routeDialog">Cancel</button><button class="btn btn-red" type="submit">Save route</button></div>
+      </form>
+    </div>
+  </dialog>
 
-<input id="importFile" type="file" accept="application/json" hidden onchange="readImport(event)">
+  <dialog id="coverageDialog">
+    <div class="dialog-body">
+      <div class="dialog-head"><h2 id="coverageTitle">Record coverage</h2><button class="icon-btn" data-close="coverageDialog">×</button></div>
+      <form id="coverageForm">
+        <input id="coverageRouteId" type="hidden">
+        <label>Date covered<input id="coverageDate" type="date" required></label>
+        <label>Method
+          <select id="coverageMethod" required>
+            <option value="Diversion">Diversion</option>
+            <option value="Booked job">Booked job</option>
+            <option value="TAPS RR">TAPS RR</option>
+            <option value="RR Day">RR Day</option>
+            <option value="Engineering Diversion">Engineering Diversion</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+        <label>Service headcode / TAPS<input id="coverageHeadcode" required maxlength="4" autocapitalize="characters" placeholder="1V50 or TAPS"></label>
+        <div class="hint">Headcode format: number + letter + two numbers, or TAPS.</div>
+        <div class="form-actions"><button type="button" class="btn btn-outline" data-close="coverageDialog">Cancel</button><button class="btn btn-red" type="submit">Save coverage</button></div>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog id="historyDialog">
+    <div class="dialog-body">
+      <div class="dialog-head"><h2 id="historyTitle">Route history</h2><button class="icon-btn" data-close="historyDialog">×</button></div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </dialog>
+
 <script>
-const DEFAULT_ROUTES=["Newcastle Forth Banks","Newcastle 'Bridges'","S&K","Adwick","Barnsley","Beighton","Rotherham","Erewash Valley","Whitacre/Coleshill PW","Lichfield / X-City"];
-let data=JSON.parse(localStorage.getItem("routeCardData")||"null")||DEFAULT_ROUTES.map((name,i)=>({id:String(Date.now()+i),name,history:[]}));
-const $=id=>document.getElementById(id);
-function save(){localStorage.setItem("routeCardData",JSON.stringify(data))}
-function today(){return new Date().toISOString().slice(0,10)}
-function daysSince(date){if(!date)return null;const a=new Date(date+"T00:00:00"),b=new Date();b.setHours(0,0,0,0);return Math.floor((b-a)/86400000)}
-function status(days){if(days===null)return ["green","🟢","No record"]; if(days<=91)return ["green","🟢","Current"];if(days<=150)return ["yellow","🟡","Due Soon"];return ["red","🔴","Attention"]}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+const DEFAULT_ROUTES = ["Newcastle Forth Banks","Newcastle 'Bridges'","S&K","Adwick","Barnsley","Beighton","Rotherham","Erewash Valley","Whitacre/Coleshill PW","Lichfield /X-City"];
+const STORAGE_KEY = "route-card-v1";
+
+function todayLocal(){
+  const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+}
+function load(){
+  try{
+    const x=JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(x && Array.isArray(x.routes)) return x;
+  }catch(e){}
+  return {version:1,routes:DEFAULT_ROUTES.map(name=>({id:crypto.randomUUID(),name,history:[]}))};
+}
+let state=load();
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+function daysSince(dateStr){
+  if(!dateStr) return null;
+  const start=new Date(dateStr+"T00:00:00"); const now=new Date(todayLocal()+"T00:00:00");
+  return Math.max(0,Math.floor((now-start)/86400000));
+}
+function latest(route){
+  return [...route.history].sort((a,b)=>b.date.localeCompare(a.date))[0]||null;
+}
+function statusFor(days){
+  if(days===null) return {key:"red",label:"Not yet covered"};
+  if(days<=91) return {key:"green",label:"Under 91 days"};
+  if(days<=182) return {key:"amber",label:"92–182 days"};
+  return {key:"red",label:"183+ days"};
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function render(){
- const box=$("routes");let counts={green:0,yellow:0,red:0};box.innerHTML="";
- data.forEach(r=>{
-  r.history.sort((a,b)=>b.date.localeCompare(a.date));const last=r.history[0];const d=last?daysSince(last.date):null;const st=status(d);counts[st[0]]++;
-  const card=document.createElement("section");card.className="route "+st[0];
-  card.innerHTML=`<button class="route-head" onclick="this.parentElement.classList.toggle('open')"><div><div class="name">${esc(r.name)}</div><div class="meta">${last?`Last covered: ${new Date(last.date+"T00:00:00").toLocaleDateString("en-GB")} · ${esc(last.method)} · <b>${esc(last.service)}</b>`:"No coverage recorded"}</div></div><div><div class="days">${d===null?"—":d}</div><div class="badge">${d===null?"No record":`days ${st[1]}`}</div></div></button>
-  <div class="history"><h3>Coverage History</h3>${r.history.length?r.history.map((e,i)=>`<div class="entry"><b>${new Date(e.date+"T00:00:00").toLocaleDateString("en-GB")}</b><span>${esc(e.method)} · <strong>${esc(e.service)}</strong></span><div class="actions"><button class="small danger" onclick="deleteCoverage('${r.id}',${i})">Delete coverage</button></div></div>`).join(""):"<div class='empty'>No coverage history yet.</div>"}<div class="actions"><button class="small" onclick="openUpdate('${r.id}')">Add coverage</button></div></div>`;
-  box.appendChild(card);
- });
- $("greenCount").textContent=counts.green;$("yellowCount").textContent=counts.yellow;$("redCount").textContent=counts.red;
+  const list=document.getElementById("routeList");
+  const routes=[...state.routes].sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById("totalCount").textContent=routes.length;
+  let amber=0,red=0,over91=[];
+  list.innerHTML="";
+  if(!routes.length){list.innerHTML='<div class="empty">No routes on your card. Add a route to begin.</div>';}
+  routes.forEach(route=>{
+    const last=latest(route), days=last?daysSince(last.date):null, status=statusFor(days);
+    if(status.key==="amber") amber++;
+    if(status.key==="red") red++;
+    if(days===null || days>91) over91.push(route.name);
+    const meta=last ? `Last covered: <b>${esc(last.date)}</b> · ${esc(last.method)} · ${esc(last.headcode)}` : "No coverage recorded yet";
+    const dayText=days===null ? "Not covered" : `${days} day${days===1?"":"s"} since covered`;
+    const el=document.createElement("article");
+    el.className="route";
+    el.innerHTML=`<div class="route-top"><div><div class="route-name">${esc(route.name)}</div><div class="route-meta">${meta}</div></div><div class="status ${status.key}"><span class="dot"></span>${status.label}</div></div>
+      <div class="route-actions"><button class="btn btn-red" data-cover="${route.id}">Record coverage</button><button class="btn btn-outline" data-history="${route.id}">History</button><button class="btn btn-outline" data-edit="${route.id}">Edit</button><button class="btn btn-ghost" data-delete="${route.id}">Remove</button></div>
+      <div class="route-meta" style="margin-top:13px"><b>${dayText}</b></div>`;
+    list.appendChild(el);
+  });
+  document.getElementById("amberCount").textContent=amber;
+  document.getElementById("redCount").textContent=red;
+  const alert=document.getElementById("reminderAlert");
+  if(over91.length){alert.classList.add("show");alert.innerHTML=`<b>Reminder:</b> ${over91.length} route${over91.length===1?" is":"s are"} over 91 days since coverage. ${over91.slice(0,4).map(esc).join(", ")}${over91.length>4?"…":""}`;}
+  else alert.classList.remove("show");
 }
-function openUpdate(id=null){
- $("routeId").value=id||"";$("dialogTitle").textContent=id?"Update Route":"Record Route Coverage";
- $("routeSelect").innerHTML=data.map(r=>`<option value="${r.id}" ${r.id===id?"selected":""}>${esc(r.name)}</option>`).join("");
- $("routeSelect").disabled=!!id;$("date").value=today();$("method").value="Diversion";$("service").value="";
- $("updateDialog").showModal();
+function routeById(id){return state.routes.find(r=>r.id===id)}
+function showRouteDialog(route){
+  document.getElementById("routeDialogTitle").textContent=route?"Edit route":"Add route";
+  document.getElementById("routeId").value=route?.id||"";
+  document.getElementById("routeName").value=route?.name||"";
+  document.getElementById("routeDialog").showModal();
 }
-function saveCoverage(e){
- e.preventDefault();const id=$("routeId").value||$("routeSelect").value;const r=data.find(x=>x.id===id);
- let service=$("service").value.trim().toUpperCase();
- if(service!=="TAPS"&&!/^\d[A-Z]\d\d$/.test(service)){alert("Enter a valid four-character headcode (e.g. 1V50) or TAPS.");return}
- r.history.push({date:$("date").value,method:$("method").value,service});save();$("updateDialog").close();
-window.addEventListener("appinstalled",()=>{
-  console.log("Route Card installed as a web app.");
-});
-
-
-render();
+function showCoverage(id){
+  document.getElementById("coverageRouteId").value=id;
+  document.getElementById("coverageTitle").textContent="Record coverage — "+routeById(id).name;
+  document.getElementById("coverageDate").value=todayLocal();
+  document.getElementById("coverageMethod").value="Diversion";
+  document.getElementById("coverageHeadcode").value="";
+  document.getElementById("coverageDialog").showModal();
 }
-function manageRoutes(){const m=$("manageList");m.innerHTML=data.map(r=>`<div class="entry"><b>${esc(r.name)}</b><div class="actions"><button class="small secondary" onclick="renameRoute('${r.id}')">Rename</button><button class="small danger" onclick="deleteRoute('${r.id}')">Delete</button></div></div>`).join("");$("manageDialog").showModal()}
-function addRoute(){const n=$("newRoute").value.trim();if(!n)return;data.push({id:String(Date.now()),name:n,history:[]});$("newRoute").value="";save();manageRoutes();render()}
-function renameRoute(id){const r=data.find(x=>x.id===id),n=prompt("Route name:",r.name);if(n&&n.trim()){r.name=n.trim();save();manageRoutes();render()}}
-function deleteRoute(id){const r=data.find(x=>x.id===id);if(confirm(`Delete ${r.name} and all its history?`)){data=data.filter(x=>x.id!==id);save();manageRoutes();render()}}
-function deleteCoverage(routeId,index){
- const r=data.find(x=>x.id===routeId);
- if(!r)return;
- const e=r.history[index];
- if(confirm(`Delete this coverage entry for ${r.name}?\n${new Date(e.date+"T00:00:00").toLocaleDateString("en-GB")} · ${e.method} · ${e.service}`)){
-   r.history.splice(index,1);
-   save();
-   
-let deferredInstallPrompt=null;
-
-render();
- }
+function showHistory(id){
+  const route=routeById(id), hist=[...route.history].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById("historyTitle").textContent=route.name+" — history";
+  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyDialog").showModal();
 }
-function toggleStatusKey(){
- const key=$("statusKey");
- const button=key.querySelector(".status-key-toggle");
- const isCollapsed=key.classList.toggle("collapsed");
- button.setAttribute("aria-expanded",String(!isCollapsed));
+document.getElementById("addRouteBtn").onclick=()=>showRouteDialog(null);
+document.getElementById("routeForm").onsubmit=e=>{
+  e.preventDefault(); const id=document.getElementById("routeId").value, name=document.getElementById("routeName").value.trim();
+  if(!name) return;
+  if(id){routeById(id).name=name;} else state.routes.push({id:crypto.randomUUID(),name,history:[]});
+  save(); render(); document.getElementById("routeDialog").close();
+};
+document.getElementById("coverageHeadcode").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
+document.getElementById("coverageForm").onsubmit=e=>{
+  e.preventDefault(); const id=document.getElementById("coverageRouteId").value, date=document.getElementById("coverageDate").value, method=document.getElementById("coverageMethod").value, headcode=document.getElementById("coverageHeadcode").value.trim().toUpperCase();
+  if(!/^(TAPS|[0-9][A-Z][0-9]{2})$/.test(headcode)){alert("Enter a valid headcode such as 1V50, or TAPS.");return;}
+  routeById(id).history.push({id:crypto.randomUUID(),date,method,headcode,createdAt:new Date().toISOString()});
+  save(); render(); document.getElementById("coverageDialog").close(); checkNotifications();
+};
+document.getElementById("routeList").onclick=e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  const id=b.dataset.cover||b.dataset.history||b.dataset.edit||b.dataset.delete; if(!id)return;
+  if(b.dataset.cover)showCoverage(id);
+  else if(b.dataset.history)showHistory(id);
+  else if(b.dataset.edit)showRouteDialog(routeById(id));
+  else if(b.dataset.delete && confirm(`Remove "${routeById(id).name}" from your route card? History for this route will also be removed from this device.`)){state.routes=state.routes.filter(r=>r.id!==id);save();render();}
+};
+document.getElementById("historyBtn").onclick=()=>{
+  const all=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name}))).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById("historyTitle").textContent="All route history";
+  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyDialog").showModal();
+};
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>document.getElementById(b.dataset.close).close());
+
+function exportBackup(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}), a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="route-card-backup-"+todayLocal()+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
-function printRouteCard(){window.print()}
-function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="route-card-backup.json";a.click();URL.revokeObjectURL(a.href)}
-function importData(){$("importFile").click()}
-function readImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;data=x;save();
-let deferredInstallPrompt=null;
+document.getElementById("backupBtn").onclick=exportBackup;
+document.getElementById("importInput").onchange=async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());
+    if(!data || !Array.isArray(data.routes))throw new Error();
+    if(!confirm("Replace the current route card on this device with the imported backup?"))return;
+    state=data;save();render();alert("Backup imported.");
+  }catch(err){alert("That file is not a valid Route card backup.");}
+  e.target.value="";
+};
 
-render();alert("Backup imported.");}catch{alert("Invalid backup file.")}};r.readAsText(f)}
-
-let deferredInstallPrompt=null;
-
-render();
-if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost")){
-  navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(err=>console.warn("Route Card offline service unavailable:",err));
+function exportPDF(){
+  const rows=state.routes.map(r=>{
+    const l=latest(r), d=l?daysSince(l.date):null, s=statusFor(d);
+    return `<tr><td>${esc(r.name)}</td><td>${d===null?"Not covered":d+" days"}</td><td>${esc(s.label)}</td><td>${l?esc(l.date):"—"}</td><td>${l?esc(l.method):"—"}</td><td>${l?esc(l.headcode):"—"}</td></tr>`;
+  }).join("");
+  const history=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name}))).sort((a,b)=>b.date.localeCompare(a.date))
+    .map(h=>`<tr><td>${esc(h.date)}</td><td>${esc(h.route)}</td><td>${esc(h.method)}</td><td>${esc(h.headcode)}</td></tr>`).join("");
+  const w=window.open("","_blank");
+  w.document.write(`<!doctype html><html><head><title>Route card — ${todayLocal()}</title><style>body{font-family:Arial,sans-serif;color:#222;padding:24px}h1{background:#ca123f;color:#fff;padding:18px;border-radius:12px}table{width:100%;border-collapse:collapse;margin:16px 0 30px}th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px}th{background:#f8efe3}@media print{body{padding:0}h1{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><h1>Route card</h1><p>Exported ${todayLocal()}</p><h2>Current route card</h2><table><thead><tr><th>Route</th><th>Days since covered</th><th>Status</th><th>Last date</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${rows||"<tr><td colspan='6'>No routes</td></tr>"}</tbody></table><h2>Route history</h2><table><thead><tr><th>Date</th><th>Route</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${history||"<tr><td colspan='4'>No history</td></tr>"}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
 }
+document.getElementById("pdfBtn").onclick=exportPDF;
+
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;document.getElementById("installBtn").classList.remove("hidden");});
+document.getElementById("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById("installBtn").classList.add("hidden");};
+window.addEventListener("appinstalled",()=>document.getElementById("installBtn").classList.add("hidden"));
+
+async function checkNotifications(){
+  const overdue=state.routes.filter(r=>{const l=latest(r);const d=l?daysSince(l.date):null;return d===null||d>91});
+  if(Notification.permission==="granted" && overdue.length && "serviceWorker" in navigator){
+    const reg=await navigator.serviceWorker.ready;
+    reg.showNotification("Route card reminder",{body:`${overdue.length} route${overdue.length===1?" is":"s are"} over 91 days since coverage.`,icon:"icon-192.png",badge:"icon-192.png",tag:"route-card-overdue"});
+  }
+}
+document.getElementById("notifyBtn").onclick=async()=>{
+  if(!("Notification" in window)){alert("Notifications are not supported by this browser.");return;}
+  const p=await Notification.requestPermission();
+  if(p==="granted"){alert("Route card reminders enabled.");checkNotifications();}
+  else alert("Notification permission was not granted.");
+};
+if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js");
+render();setTimeout(checkNotifications,900);
 </script>
 </body>
 </html>
