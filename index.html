@@ -47,7 +47,7 @@
     .metric b{display:block;font-size:1.55rem;line-height:1.1}
     .metric span{font-size:.78rem;color:var(--xc-muted)}
     .alert{display:none;background:#fff7d8;border:1px solid #f0cf70;color:#6f5200;border-radius:14px;padding:12px 14px;margin:0 0 18px}
-    .alert.show{display:block}
+    .alert.show{display:block}.alert-toggle{background:none;border:0;color:#6f5200;font-weight:800;padding:0;cursor:pointer;text-align:left;font:inherit}.alert-details{display:none;margin-top:10px;font-size:.88rem;line-height:1.5}.alert.expanded .alert-details{display:block}.alert-chevron{display:inline-block;margin-left:6px}
     .section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:24px 0 12px}
     h2{font-size:1.1rem;margin:0}
     .count{font-size:.82rem;color:var(--xc-muted)}
@@ -92,11 +92,6 @@
         <div class="brand-copy">Route card</div>
       </div>
       <p class="subtitle">Diversion coverage record</p>
-      <div class="top-actions">
-        <button id="installBtn" class="btn btn-light hidden">Install app</button>
-        <button id="notifyBtn" class="btn btn-light">Enable reminders</button>
-        <span id="installNote" class="install-note">Works offline and stores data on this device.</span>
-      </div>
     </header>
 
     <section class="summary" aria-label="Route summary">
@@ -114,6 +109,7 @@
     <section id="routeList" class="route-list"></section>
 
     <section class="admin">
+      <div style="margin-bottom:16px"><button id="editCardBtn" class="btn btn-red" style="width:100%">Edit route card</button></div>
       <div class="section-head"><div><h2>Route card administration</h2><div class="count">Manage routes, history and local backups</div></div></div>
       <div class="admin-grid">
         <button id="historyBtn" class="btn btn-outline">View all route history</button>
@@ -180,6 +176,7 @@ function load(){
   return {version:1,routes:DEFAULT_ROUTES.map(name=>({id:crypto.randomUUID(),name,history:[]}))};
 }
 let state=load();
+let editMode=false;
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
 function daysSince(dateStr){
   if(!dateStr) return null;
@@ -213,15 +210,18 @@ function render(){
     const el=document.createElement("article");
     el.className="route";
     el.innerHTML=`<div class="route-top"><div><div class="route-name">${esc(route.name)}</div><div class="route-meta">${meta}</div></div><div class="status ${status.key}"><span class="dot"></span>${status.label}</div></div>
-      <div class="route-actions"><button class="btn btn-red" data-cover="${route.id}">Record coverage</button><button class="btn btn-outline" data-history="${route.id}">History</button><button class="btn btn-outline" data-edit="${route.id}">Edit</button><button class="btn btn-ghost" data-delete="${route.id}">Remove</button></div>
+      <div class="route-actions"><button class="btn btn-red" data-cover="${route.id}">Record coverage</button><button class="btn btn-outline" data-history="${route.id}">History</button>${editMode?`<button class="btn btn-ghost" data-delete="${route.id}">Remove</button>`:""}</div>
       <div class="route-meta" style="margin-top:13px"><b>${dayText}</b></div>`;
     list.appendChild(el);
   });
   document.getElementById("amberCount").textContent=amber;
   document.getElementById("redCount").textContent=red;
   const alert=document.getElementById("reminderAlert");
-  if(over91.length){alert.classList.add("show");alert.innerHTML=`<b>Reminder:</b> ${over91.length} route${over91.length===1?" is":"s are"} over 91 days since coverage. ${over91.slice(0,4).map(esc).join(", ")}${over91.length>4?"…":""}`;}
-  else alert.classList.remove("show");
+  if(over91.length){
+    alert.classList.add("show"); alert.classList.remove("expanded");
+    alert.innerHTML=`<button class="alert-toggle" type="button"><b>Reminder:</b> ${over91.length} route${over91.length===1?" is":"s are"} over 91 days since coverage. <span class="alert-chevron">⌄</span></button><div class="alert-details">${over91.map(name=>`• ${esc(name)}`).join("<br>")}</div>`;
+    alert.querySelector(".alert-toggle").onclick=()=>{alert.classList.toggle("expanded");alert.querySelector(".alert-chevron").textContent=alert.classList.contains("expanded")?"⌃":"⌄";};
+  } else {alert.classList.remove("show","expanded");alert.innerHTML="";}
 }
 function routeById(id){return state.routes.find(r=>r.id===id)}
 function showRouteDialog(route){
@@ -263,8 +263,12 @@ document.getElementById("routeList").onclick=e=>{
   const id=b.dataset.cover||b.dataset.history||b.dataset.edit||b.dataset.delete; if(!id)return;
   if(b.dataset.cover)showCoverage(id);
   else if(b.dataset.history)showHistory(id);
-  else if(b.dataset.edit)showRouteDialog(routeById(id));
   else if(b.dataset.delete && confirm(`Remove "${routeById(id).name}" from your route card? History for this route will also be removed from this device.`)){state.routes=state.routes.filter(r=>r.id!==id);save();render();}
+};
+document.getElementById("editCardBtn").onclick=()=>{
+  editMode=!editMode;
+  document.getElementById("editCardBtn").textContent=editMode?"Done editing route card":"Edit route card";
+  render();
 };
 document.getElementById("historyBtn").onclick=()=>{
   const all=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name}))).sort((a,b)=>b.date.localeCompare(a.date));
@@ -303,10 +307,6 @@ function exportPDF(){
 }
 document.getElementById("pdfBtn").onclick=exportPDF;
 
-let deferredPrompt=null;
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;document.getElementById("installBtn").classList.remove("hidden");});
-document.getElementById("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById("installBtn").classList.add("hidden");};
-window.addEventListener("appinstalled",()=>document.getElementById("installBtn").classList.add("hidden"));
 
 async function checkNotifications(){
   const overdue=state.routes.filter(r=>{const l=latest(r);const d=l?daysSince(l.date):null;return d===null||d>91});
@@ -315,14 +315,14 @@ async function checkNotifications(){
     reg.showNotification("Route card reminder",{body:`${overdue.length} route${overdue.length===1?" is":"s are"} over 91 days since coverage.`,icon:"icon-192.png",badge:"icon-192.png",tag:"route-card-overdue"});
   }
 }
-document.getElementById("notifyBtn").onclick=async()=>{
-  if(!("Notification" in window)){alert("Notifications are not supported by this browser.");return;}
-  const p=await Notification.requestPermission();
-  if(p==="granted"){alert("Route card reminders enabled.");checkNotifications();}
-  else alert("Notification permission was not granted.");
-};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js");
-render();setTimeout(checkNotifications,900);
+render();
+setTimeout(async()=>{
+  if("Notification" in window && Notification.permission==="default"){
+    try{await Notification.requestPermission();}catch(e){}
+  }
+  checkNotifications();
+},900);
 </script>
 </body>
 </html>
