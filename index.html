@@ -250,7 +250,7 @@ function showCoverage(id){
 function showHistory(id){
   const route=routeById(id), hist=[...route.history].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent=route.name+" — history";
-  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${route.id}">Delete record</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${route.id}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 }
 document.getElementById("quickCoverageBtn").onclick=()=>showCoverage(null);
@@ -293,7 +293,7 @@ setupEditCardButton();
 document.getElementById("historyBtn").onclick=()=>{
   const all=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name,routeId:r.id}))).sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent="All route history";
-  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${x.routeId}">Delete record</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${x.routeId}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 };
 document.getElementById("historyList").onclick=e=>{
@@ -303,7 +303,7 @@ document.getElementById("historyList").onclick=e=>{
   if(!route)return;
   const record=route.history.find(h=>h.id===b.dataset.deleteRecord);
   if(!record)return;
-  if(!confirm(`Delete this coverage record for "${route.name}" dated ${record.date}?`))return;
+  if(!confirm(`Remove this individual coverage entry for "${route.name}" dated ${record.date}? The route itself will remain on your Route card.`))return;
   route.history=route.history.filter(h=>h.id!==record.id);
   save();
   render();
