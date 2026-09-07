@@ -1,4 +1,4 @@
-const CACHE="route-card-pwa-v6";
+const CACHE="route-card-pwa-v7";
 const ASSETS=["./","./index.html","./manifest.json","./sw.js","./icon.jpeg","./xc-white-logo.png"];
 self.addEventListener("install",event=>{
   self.skipWaiting();
