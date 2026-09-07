@@ -67,6 +67,25 @@ dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:18px 
   .status-key{color:#222!important;background:#f3eee7!important}
 }
 
+
+/* Final global text treatment: white throughout the app */
+html, body, body * { color:#ffffff; }
+input, select, option { color:#ffffff !important; }
+input::placeholder { color:#ffffff !important; opacity:.78; }
+button { color:#ffffff !important; }
+.print-btn { color:#ffffff !important; }
+.status-key small { color:#ffffff !important; }
+@media print {
+  html, body, body * { color:#111 !important; }
+  header, header * { color:#fff !important; }
+}
+
+.install-pwa{
+  position:fixed;left:18px;bottom:calc(env(safe-area-inset-bottom) + 22px);
+  z-index:20;background:var(--xc)!important;border:1px solid #ffffff99;
+  color:#ffffff!important;box-shadow:0 6px 22px #7a153d55;
+}
+@media print{.install-pwa{display:none!important}}
 </style>
 </head>
 <body>
@@ -99,6 +118,7 @@ dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:18px 
 </div>
 </main>
 <button class="fab" onclick="openUpdate()" aria-label="Add coverage">＋</button>
+<button id="installPWA" class="install-pwa" type="button" hidden>Install App</button>
 
 <dialog id="updateDialog">
 <form method="dialog" onsubmit="saveCoverage(event)">
@@ -151,7 +171,33 @@ function saveCoverage(e){
  e.preventDefault();const id=$("routeId").value||$("routeSelect").value;const r=data.find(x=>x.id===id);
  let service=$("service").value.trim().toUpperCase();
  if(service!=="TAPS"&&!/^\d[A-Z]\d\d$/.test(service)){alert("Enter a valid four-character headcode (e.g. 1V50) or TAPS.");return}
- r.history.push({date:$("date").value,method:$("method").value,service});save();$("updateDialog").close();render();
+ r.history.push({date:$("date").value,method:$("method").value,service});save();$("updateDialog").close();
+let deferredInstallPrompt=null;
+const installButton=$("installPWA");
+
+window.addEventListener("beforeinstallprompt",(event)=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  installButton.hidden=false;
+});
+
+installButton.addEventListener("click",async()=>{
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    installButton.hidden=true;
+  }else{
+    alert("To install Route Card on iPhone or iPad, open this app in Safari, tap Share, then choose Add to Home Screen.");
+  }
+});
+
+window.addEventListener("appinstalled",()=>{
+  installButton.hidden=true;
+  deferredInstallPrompt=null;
+});
+
+render();
 }
 function manageRoutes(){const m=$("manageList");m.innerHTML=data.map(r=>`<div class="entry"><b>${esc(r.name)}</b><div class="actions"><button class="small secondary" onclick="renameRoute('${r.id}')">Rename</button><button class="small danger" onclick="deleteRoute('${r.id}')">Delete</button></div></div>`).join("");$("manageDialog").showModal()}
 function addRoute(){const n=$("newRoute").value.trim();if(!n)return;data.push({id:String(Date.now()),name:n,history:[]});$("newRoute").value="";save();manageRoutes();render()}
@@ -164,7 +210,33 @@ function deleteCoverage(routeId,index){
  if(confirm(`Delete this coverage entry for ${r.name}?\n${new Date(e.date+"T00:00:00").toLocaleDateString("en-GB")} · ${e.method} · ${e.service}`)){
    r.history.splice(index,1);
    save();
-   render();
+   
+let deferredInstallPrompt=null;
+const installButton=$("installPWA");
+
+window.addEventListener("beforeinstallprompt",(event)=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  installButton.hidden=false;
+});
+
+installButton.addEventListener("click",async()=>{
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    installButton.hidden=true;
+  }else{
+    alert("To install Route Card on iPhone or iPad, open this app in Safari, tap Share, then choose Add to Home Screen.");
+  }
+});
+
+window.addEventListener("appinstalled",()=>{
+  installButton.hidden=true;
+  deferredInstallPrompt=null;
+});
+
+render();
  }
 }
 function toggleStatusKey(){
@@ -176,7 +248,59 @@ function toggleStatusKey(){
 function printRouteCard(){window.print()}
 function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="route-card-backup.json";a.click();URL.revokeObjectURL(a.href)}
 function importData(){$("importFile").click()}
-function readImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;data=x;save();render();alert("Backup imported.");}catch{alert("Invalid backup file.")}};r.readAsText(f)}
+function readImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;data=x;save();
+let deferredInstallPrompt=null;
+const installButton=$("installPWA");
+
+window.addEventListener("beforeinstallprompt",(event)=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  installButton.hidden=false;
+});
+
+installButton.addEventListener("click",async()=>{
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    installButton.hidden=true;
+  }else{
+    alert("To install Route Card on iPhone or iPad, open this app in Safari, tap Share, then choose Add to Home Screen.");
+  }
+});
+
+window.addEventListener("appinstalled",()=>{
+  installButton.hidden=true;
+  deferredInstallPrompt=null;
+});
+
+render();alert("Backup imported.");}catch{alert("Invalid backup file.")}};r.readAsText(f)}
+
+let deferredInstallPrompt=null;
+const installButton=$("installPWA");
+
+window.addEventListener("beforeinstallprompt",(event)=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  installButton.hidden=false;
+});
+
+installButton.addEventListener("click",async()=>{
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    installButton.hidden=true;
+  }else{
+    alert("To install Route Card on iPhone or iPad, open this app in Safari, tap Share, then choose Add to Home Screen.");
+  }
+});
+
+window.addEventListener("appinstalled",()=>{
+  installButton.hidden=true;
+  deferredInstallPrompt=null;
+});
+
 render();
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 </script>
