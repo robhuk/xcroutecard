@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#15171c">
 <link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Route Card">
+<link rel="apple-touch-icon" href="icon.jpeg">
 <title>Route Card</title>
 <style>
 :root{
@@ -80,12 +84,8 @@ button { color:#ffffff !important; }
   header, header * { color:#fff !important; }
 }
 
-.install-pwa{
-  position:fixed;left:18px;bottom:calc(env(safe-area-inset-bottom) + 22px);
-  z-index:20;background:var(--xc)!important;border:1px solid #ffffff99;
-  color:#ffffff!important;box-shadow:0 6px 22px #7a153d55;
-}
-@media print{.install-pwa{display:none!important}}
+
+
 </style>
 </head>
 <body>
@@ -118,7 +118,6 @@ button { color:#ffffff !important; }
 </div>
 </main>
 <button class="fab" onclick="openUpdate()" aria-label="Add coverage">＋</button>
-<button id="installPWA" class="install-pwa" type="button" hidden>Install App</button>
 
 <dialog id="updateDialog">
 <form method="dialog" onsubmit="saveCoverage(event)">
@@ -172,30 +171,10 @@ function saveCoverage(e){
  let service=$("service").value.trim().toUpperCase();
  if(service!=="TAPS"&&!/^\d[A-Z]\d\d$/.test(service)){alert("Enter a valid four-character headcode (e.g. 1V50) or TAPS.");return}
  r.history.push({date:$("date").value,method:$("method").value,service});save();$("updateDialog").close();
-let deferredInstallPrompt=null;
-const installButton=$("installPWA");
-
-window.addEventListener("beforeinstallprompt",(event)=>{
-  event.preventDefault();
-  deferredInstallPrompt=event;
-  installButton.hidden=false;
-});
-
-installButton.addEventListener("click",async()=>{
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-    installButton.hidden=true;
-  }else{
-    alert("To install Route Card on iPhone or iPad, open this app in Safari, tap Share, then choose Add to Home Screen.");
-  }
-});
-
 window.addEventListener("appinstalled",()=>{
-  installButton.hidden=true;
-  deferredInstallPrompt=null;
+  console.log("Route Card installed as a web app.");
 });
+
 
 render();
 }
@@ -212,29 +191,6 @@ function deleteCoverage(routeId,index){
    save();
    
 let deferredInstallPrompt=null;
-const installButton=$("installPWA");
-
-window.addEventListener("beforeinstallprompt",(event)=>{
-  event.preventDefault();
-  deferredInstallPrompt=event;
-  installButton.hidden=false;
-});
-
-installButton.addEventListener("click",async()=>{
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-    installButton.hidden=true;
-  }else{
-    alert("To install Route Card on iPhone or iPad, open this app in Safari, tap Share, then choose Add to Home Screen.");
-  }
-});
-
-window.addEventListener("appinstalled",()=>{
-  installButton.hidden=true;
-  deferredInstallPrompt=null;
-});
 
 render();
  }
@@ -250,59 +206,15 @@ function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"a
 function importData(){$("importFile").click()}
 function readImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;data=x;save();
 let deferredInstallPrompt=null;
-const installButton=$("installPWA");
-
-window.addEventListener("beforeinstallprompt",(event)=>{
-  event.preventDefault();
-  deferredInstallPrompt=event;
-  installButton.hidden=false;
-});
-
-installButton.addEventListener("click",async()=>{
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-    installButton.hidden=true;
-  }else{
-    alert("To install Route Card on iPhone or iPad, open this app in Safari, tap Share, then choose Add to Home Screen.");
-  }
-});
-
-window.addEventListener("appinstalled",()=>{
-  installButton.hidden=true;
-  deferredInstallPrompt=null;
-});
 
 render();alert("Backup imported.");}catch{alert("Invalid backup file.")}};r.readAsText(f)}
 
 let deferredInstallPrompt=null;
-const installButton=$("installPWA");
-
-window.addEventListener("beforeinstallprompt",(event)=>{
-  event.preventDefault();
-  deferredInstallPrompt=event;
-  installButton.hidden=false;
-});
-
-installButton.addEventListener("click",async()=>{
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-    installButton.hidden=true;
-  }else{
-    alert("To install Route Card on iPhone or iPad, open this app in Safari, tap Share, then choose Add to Home Screen.");
-  }
-});
-
-window.addEventListener("appinstalled",()=>{
-  installButton.hidden=true;
-  deferredInstallPrompt=null;
-});
 
 render();
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost")){
+  navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(err=>console.warn("Route Card offline service unavailable:",err));
+}
 </script>
 </body>
 </html>

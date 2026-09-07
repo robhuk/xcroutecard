@@ -1,15 +1,17 @@
 {
+  "id":"route-card-app",
   "name":"Route Card",
   "short_name":"Route Card",
   "description":"Offline CrossCountry route coverage record",
-  "start_url":"./",
+  "lang":"en-GB",
+  "start_url":"./index.html",
   "scope":"./",
   "display":"standalone",
-  "display_override":["standalone","minimal-ui"],
   "background_color":"#f6f0e4",
   "theme_color":"#cf0d3d",
   "orientation":"any",
   "icons":[
-    {"src":"icon.jpeg","sizes":"1254x1254","type":"image/jpeg","purpose":"any maskable"}
+    {"src":"icon.jpeg","sizes":"1254x1254","type":"image/jpeg","purpose":"any"},
+    {"src":"icon.jpeg","sizes":"1254x1254","type":"image/jpeg","purpose":"maskable"}
   ]
 }
