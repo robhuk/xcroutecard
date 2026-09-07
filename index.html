@@ -58,7 +58,7 @@
     .status{display:flex;align-items:center;gap:7px;font-size:.86rem;font-weight:800;white-space:nowrap}
     .dot{width:12px;height:12px;border-radius:50%;display:inline-block;box-shadow:0 0 0 4px rgba(0,0,0,.04)}
     .status.green .dot{background:var(--green)} .status.amber .dot{background:#f0b400} .status.red .dot{background:var(--red)}
-    .route-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;color:var(--xc-muted);font-size:.87rem}
+    .route-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;color:var(--xc-muted);font-size:.87rem}.days-elapsed{margin-top:13px;font-size:1rem;color:var(--xc-ink);font-weight:800}
     .route-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
     .route-actions button{padding:9px 12px;border-radius:10px}
     .empty{padding:28px 16px;text-align:center;border:2px dashed var(--xc-border);border-radius:18px;color:var(--xc-muted);background:#fff}
@@ -210,12 +210,12 @@ function render(){
     if(status.key==="red") red++;
     if(days===null || days>91) over91.push(route.name);
     const meta=last ? `Last covered: <b>${esc(last.date)}</b> · ${esc(last.method)} · ${esc(last.headcode)}` : "No coverage recorded yet";
-    const dayText=days===null ? "Not covered" : `${days} day${days===1?"":"s"} since covered`;
+    const dayText=days===null ? "Days elapsed: Not yet covered" : `Days elapsed: ${days}`;
     const el=document.createElement("article");
     el.className="route";
     el.innerHTML=`<div class="route-top"><div><div class="route-name">${esc(route.name)}</div><div class="route-meta">${meta}</div></div><div class="status ${status.key}"><span class="dot"></span>${status.label}</div></div>
       <div class="route-actions"><button class="btn btn-outline" data-history="${route.id}">History</button>${editMode?`<button class="btn btn-ghost" data-delete="${route.id}">Remove</button>`:""}</div>
-      <div class="route-meta" style="margin-top:13px"><b>${dayText}</b></div>`;
+      <div class="days-elapsed">${dayText}</div>`;
     list.appendChild(el);
   });
   document.getElementById("amberCount").textContent=amber;
