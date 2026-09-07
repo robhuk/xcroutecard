@@ -8,37 +8,69 @@
 <title>Route Card</title>
 <style>
 :root{
-  --bg:#111318;--panel:#1b1e25;--panel2:#242832;--text:#f4f5f7;--muted:#aeb4c0;
-  --xc:#e4003b;--xc2:#ff174f;--border:#343944;--green:#2ecc71;--amber:#f5b700;--red:#ef4444;
+  --bg:#d2e1e7;
+  --panel:#cf0d3d;
+  --panel2:#9f2c42;
+  --text:#ffffff;
+  --muted:#f1e9df;
+  --xc:#cf0d3d;
+  --xc2:#a12c43;
+  --accent:#ffc21c;
+  --border:#ffffff;
+  --input:#f5f2ed;
+  --input-text:#5c5c5c;
+  --green:#2fbf71;
+  --amber:#ffc21c;
+  --red:#ef4444;
 }
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#171920,#111318);padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;border-bottom:2px solid var(--xc)}
-h1{margin:0;font-size:28px;letter-spacing:.4px}.sub{color:var(--muted);font-size:13px;margin-top:4px}
-main{padding:14px 14px 90px;max-width:760px;margin:auto}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.summary div{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-size:12px}.summary b{display:block;font-size:21px;margin-bottom:3px}
-.route{background:var(--panel);border:1px solid var(--border);border-left:5px solid var(--green);border-radius:14px;margin:10px 0;overflow:hidden}.route.yellow{border-left-color:var(--amber)}.route.red{border-left-color:var(--red)}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#d2e1e7 0%,#b9d0da 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--xc);padding:calc(env(safe-area-inset-top) + 18px) 18px 18px;border-bottom:0;text-align:center}
+h1{margin:0;font-size:29px;letter-spacing:1px;font-style:italic}.sub{display:none}
+main{padding:18px 14px 110px;max-width:760px;margin:auto}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.summary div{background:var(--panel2);border:0;border-radius:12px;padding:10px;text-align:center;font-size:12px}.summary b{display:block;font-size:21px;margin-bottom:3px}
+.route{background:var(--panel);border:1px solid #ffffff55;border-left:5px solid var(--green);border-radius:14px;margin:10px 0;overflow:hidden;box-shadow:0 3px 12px #7d183333}.route.yellow{border-left-color:var(--amber)}.route.red{border-left-color:var(--red)}
 .route-head{width:100%;border:0;background:transparent;color:inherit;text-align:left;padding:15px;display:grid;grid-template-columns:1fr auto;gap:8px;cursor:pointer}
 .name{font-size:18px;font-weight:700}.meta{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.45}.days{font-weight:800;font-size:17px;text-align:right}.badge{font-size:13px;margin-top:7px}
-.history{display:none;border-top:1px solid var(--border);padding:12px 15px 15px}.route.open .history{display:block}
+.history{display:none;border-top:1px solid #ffffff66;padding:12px 15px 15px;background:#a92a45}.route.open .history{display:block}
 .history h3{margin:0 0 10px;font-size:15px}.entry{padding:10px 0;border-top:1px solid #2c303a}.entry:first-of-type{border-top:0}.entry b{display:block}.entry span{color:var(--muted);font-size:13px}
 .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-button,.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;background:var(--xc);color:white}.secondary{background:#303541}.danger{background:#84202c}.small{padding:8px 10px;font-size:12px}
-.fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 18px);width:58px;height:58px;border-radius:50%;font-size:30px;box-shadow:0 8px 30px #0008}
-dialog{width:min(94vw,500px);background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:18px}dialog::backdrop{background:#0009}
-label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:#111318;color:var(--text);font-size:16px}
+button,.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;background:var(--accent);color:#161616}.secondary{background:var(--panel2);color:white;border:1px solid #ffffff66}.danger{background:#84202c;color:white}.small{padding:8px 10px;font-size:12px}
+.fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 18px);width:58px;height:58px;border-radius:50%;font-size:30px;box-shadow:0 8px 30px #7a153d66;background:var(--accent)}
+dialog{width:min(94vw,500px);background:var(--xc);color:var(--text);border:1px solid #ffffff88;border-radius:18px;padding:18px}dialog::backdrop{background:#0009}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}input,select{width:100%;padding:12px;border-radius:10px;border:0;background:var(--input);color:var(--input-text);font-size:16px}
 dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:18px 0 0}
 .empty{color:var(--muted);text-align:center;padding:30px}
-.top-actions{display:flex;gap:8px;margin:14px 0}.top-actions button{flex:1;font-size:12px}
+.top-actions{display:flex;gap:8px;margin:14px 0}.top-actions button{flex:1;font-size:12px}.bottom-actions{margin-top:20px;padding-top:16px;border-top:1px solid #ffffff66}
+.status-key{margin-top:28px;background:var(--panel2);border:1px solid #ffffff66;border-radius:14px;padding:16px}
+.status-key h2{margin:0 0 12px;text-align:center;font-size:18px;font-style:italic}
+.key-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #ffffff44}
+.key-row:first-of-type{border-top:0}
+.key-dot{font-size:22px;line-height:1}
+.key-row strong{display:block;font-size:15px}
+.key-row small{display:block;color:var(--muted);margin-top:2px}
 </style>
 </head>
 <body>
-<header><h1>ROUTE CARD</h1><div class="sub">CrossCountry route coverage record</div></header>
+<header><h1>ROUTE CARD</h1></header>
 <main>
 <div class="summary">
 <div><b id="greenCount">0</b>🟢 Current</div><div><b id="yellowCount">0</b>🟡 Due Soon</div><div><b id="redCount">0</b>🔴 Attention</div>
 </div>
-<div class="top-actions"><button class="secondary" onclick="manageRoutes()">Manage Routes</button><button class="secondary" onclick="exportData()">Export Backup</button><button class="secondary" onclick="importData()">Import</button></div>
+
 <div id="routes"></div>
+
+<section class="status-key">
+  <h2>Status Key</h2>
+  <div class="key-row"><span class="key-dot green-dot">🟢</span><span><strong>0–91 days</strong><small>Green — Current</small></span></div>
+  <div class="key-row"><span class="key-dot amber-dot">🟡</span><span><strong>92–150 days</strong><small>Amber/Yellow — Due Soon</small></span></div>
+  <div class="key-row"><span class="key-dot red-dot">🔴</span><span><strong>151+ days</strong><small>Red — Attention Required</small></span></div>
+</section>
+
+<div class="top-actions bottom-actions">
+  <button class="secondary" onclick="manageRoutes()">Manage Routes</button>
+  <button class="secondary" onclick="exportData()">Export Backup</button>
+  <button class="secondary" onclick="importData()">Import</button>
+</div>
 </main>
 <button class="fab" onclick="openUpdate()" aria-label="Add coverage">＋</button>
 
@@ -49,7 +81,7 @@ dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:18px 
 <label>Route</label><select id="routeSelect" required></select>
 <label>Date covered</label><input id="date" type="date" required>
 <label>Method</label><select id="method" required>
-<option>Diversion</option><option>Booked Job</option><option>TAPS RR</option><option>Engineering Diversion</option><option>Other</option></select>
+<option>Diversion</option><option>Booked Job</option><option>Booked RR Day</option><option>TAPS RR</option><option>Engineering Diversion</option><option>Other</option></select>
 <label>Headcode / Service used</label><input id="service" maxlength="4" placeholder="e.g. 1V50 or TAPS" required>
 <menu><button type="button" class="secondary" onclick="updateDialog.close()">Cancel</button><button type="submit">Save</button></menu>
 </form>
@@ -70,7 +102,7 @@ const $=id=>document.getElementById(id);
 function save(){localStorage.setItem("routeCardData",JSON.stringify(data))}
 function today(){return new Date().toISOString().slice(0,10)}
 function daysSince(date){if(!date)return null;const a=new Date(date+"T00:00:00"),b=new Date();b.setHours(0,0,0,0);return Math.floor((b-a)/86400000)}
-function status(days){if(days===null)return ["green","🟢","No record"]; if(days<=90)return ["green","🟢","Current"];if(days<=150)return ["yellow","🟡","Due Soon"];return ["red","🔴","Attention"]}
+function status(days){if(days===null)return ["green","🟢","No record"]; if(days<=91)return ["green","🟢","Current"];if(days<=150)return ["yellow","🟡","Due Soon"];return ["red","🔴","Attention"]}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function render(){
  const box=$("routes");let counts={green:0,yellow:0,red:0};box.innerHTML="";
@@ -78,7 +110,7 @@ function render(){
   r.history.sort((a,b)=>b.date.localeCompare(a.date));const last=r.history[0];const d=last?daysSince(last.date):null;const st=status(d);counts[st[0]]++;
   const card=document.createElement("section");card.className="route "+st[0];
   card.innerHTML=`<button class="route-head" onclick="this.parentElement.classList.toggle('open')"><div><div class="name">${esc(r.name)}</div><div class="meta">${last?`Last covered: ${new Date(last.date+"T00:00:00").toLocaleDateString("en-GB")} · ${esc(last.method)} · <b>${esc(last.service)}</b>`:"No coverage recorded"}</div></div><div><div class="days">${d===null?"—":d}</div><div class="badge">${d===null?"No record":`days ${st[1]}`}</div></div></button>
-  <div class="history"><h3>Coverage History</h3>${r.history.length?r.history.map(e=>`<div class="entry"><b>${new Date(e.date+"T00:00:00").toLocaleDateString("en-GB")}</b><span>${esc(e.method)} · <strong>${esc(e.service)}</strong></span></div>`).join(""):"<div class='empty'>No coverage history yet.</div>"}<div class="actions"><button class="small" onclick="openUpdate('${r.id}')">Add coverage</button></div></div>`;
+  <div class="history"><h3>Coverage History</h3>${r.history.length?r.history.map((e,i)=>`<div class="entry"><b>${new Date(e.date+"T00:00:00").toLocaleDateString("en-GB")}</b><span>${esc(e.method)} · <strong>${esc(e.service)}</strong></span><div class="actions"><button class="small danger" onclick="deleteCoverage('${r.id}',${i})">Delete coverage</button></div></div>`).join(""):"<div class='empty'>No coverage history yet.</div>"}<div class="actions"><button class="small" onclick="openUpdate('${r.id}')">Add coverage</button></div></div>`;
   box.appendChild(card);
  });
  $("greenCount").textContent=counts.green;$("yellowCount").textContent=counts.yellow;$("redCount").textContent=counts.red;
@@ -99,6 +131,16 @@ function manageRoutes(){const m=$("manageList");m.innerHTML=data.map(r=>`<div cl
 function addRoute(){const n=$("newRoute").value.trim();if(!n)return;data.push({id:String(Date.now()),name:n,history:[]});$("newRoute").value="";save();manageRoutes();render()}
 function renameRoute(id){const r=data.find(x=>x.id===id),n=prompt("Route name:",r.name);if(n&&n.trim()){r.name=n.trim();save();manageRoutes();render()}}
 function deleteRoute(id){const r=data.find(x=>x.id===id);if(confirm(`Delete ${r.name} and all its history?`)){data=data.filter(x=>x.id!==id);save();manageRoutes();render()}}
+function deleteCoverage(routeId,index){
+ const r=data.find(x=>x.id===routeId);
+ if(!r)return;
+ const e=r.history[index];
+ if(confirm(`Delete this coverage entry for ${r.name}?\n${new Date(e.date+"T00:00:00").toLocaleDateString("en-GB")} · ${e.method} · ${e.service}`)){
+   r.history.splice(index,1);
+   save();
+   render();
+ }
+}
 function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="route-card-backup.json";a.click();URL.revokeObjectURL(a.href)}
 function importData(){$("importFile").click()}
 function readImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;data=x;save();render();alert("Backup imported.");}catch{alert("Invalid backup file.")}};r.readAsText(f)}
