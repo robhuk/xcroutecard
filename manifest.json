@@ -3,7 +3,7 @@
   "short_name":"Route Card",
   "start_url":"./",
   "display":"standalone",
-  "background_color":"#d2e1e7",
+  "background_color":"#f6f0e4",
   "theme_color":"#cf0d3d",
   "icons":[{"src":"icon.jpeg","sizes":"1254x1254","type":"image/jpeg"}]
 }
