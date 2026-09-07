@@ -8,11 +8,11 @@
 <title>Route Card</title>
 <style>
 :root{
-  --bg:#d2e1e7;
+  --bg:#f6f0e4;
   --panel:#cf0d3d;
   --panel2:#9f2c42;
-  --text:#ffffff;
-  --muted:#f1e9df;
+  --text:#fff8eb;
+  --muted:#f4e9da;
   --xc:#cf0d3d;
   --xc2:#a12c43;
   --accent:#ffc21c;
@@ -25,7 +25,7 @@
 }
 *{box-sizing:border-box} body{margin:0;background:#f6f0e4;color:#2f2f32;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 header{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#cf0d3d,#9f2c42);padding:calc(env(safe-area-inset-top) + 13px) 18px 13px;border-bottom:0;display:flex;align-items:center;justify-content:space-between}
-h1{margin:0;font-size:22px;letter-spacing:.5px;font-style:normal;color:white}.sub{display:none}.xc-logo{display:flex;align-items:center;gap:6px;color:white;font-size:20px;font-weight:500;letter-spacing:.5px}.xc-mark{font-size:32px;font-weight:800;line-height:1;transform:skewX(-12deg);display:inline-block}
+h1{margin:0;font-size:21px;letter-spacing:.4px;font-style:normal;color:#fff8eb}.sub{display:none}.xc-logo-img{display:block;height:42px;max-width:58%;object-fit:contain}
 main{padding:18px 14px 110px;max-width:760px;margin:auto}
 .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.summary div{background:var(--panel2);border:0;border-radius:12px;padding:10px;text-align:center;font-size:12px}.summary b{display:block;font-size:21px;margin-bottom:3px}
 .route{background:var(--panel);border:1px solid #ffffff55;border-left:5px solid var(--green);border-radius:14px;margin:10px 0;overflow:hidden;box-shadow:0 3px 12px #7d183333}.route.yellow{border-left-color:var(--amber)}.route.red{border-left-color:var(--red)}
@@ -41,13 +41,16 @@ label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}input,se
 dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:18px 0 0}
 .empty{color:var(--muted);text-align:center;padding:30px}
 .top-actions{display:flex;gap:8px;margin:14px 0}.top-actions button{flex:1;font-size:12px}.bottom-actions{margin-top:20px;padding-top:16px;border-top:1px solid #d8c7b266}.print-btn{background:var(--xc)!important;color:white!important;font-size:14px!important}.management-actions{margin-top:8px;padding-top:8px;border-top:0}
-.status-key{margin-top:28px;background:#efe5d7;border:1px solid #d8c7b2;border-radius:14px;padding:16px;color:#4a3035}
-.status-key h2{margin:0 0 12px;text-align:center;font-size:18px;font-style:italic}
+.status-key{margin-top:28px;background:var(--panel2);border:1px solid #ffffff66;border-radius:14px;color:#fff8eb;overflow:hidden}
+.status-key-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent!important;color:#fff8eb!important;padding:16px 18px;border-radius:0;text-align:left;font-size:18px!important}
+.status-chevron{font-size:24px;transition:transform .2s ease;line-height:1}
+.status-key:not(.collapsed) .status-chevron{transform:rotate(180deg)}
+.status-key-content{padding:0 16px 14px}
+.status-key.collapsed .status-key-content{display:none}
 .key-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #ffffff44}
-.key-row:first-of-type{border-top:0}
 .key-dot{font-size:22px;line-height:1}
-.key-row strong{display:block;font-size:15px}
-.key-row small{display:block;color:#6a5558;margin-top:2px}
+.key-row strong{display:block;font-size:15px;color:#fff8eb}
+.key-row small{display:block;color:#f4e9da;margin-top:2px}
 
 @media print{
   @page{size:A4 portrait;margin:12mm}
@@ -67,7 +70,7 @@ dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:18px 
 </style>
 </head>
 <body>
-<header><h1>Route Card</h1><div class="xc-logo" aria-label="CrossCountry"><span>crosscountry</span><span class="xc-mark">✕</span></div></header>
+<header><h1>Route Card</h1><img class="xc-logo-img" src="xc-white-logo.png" alt="CrossCountry"></header>
 <main>
 <div class="summary">
 <div><b id="greenCount">0</b>🟢 Current</div><div><b id="yellowCount">0</b>🟡 Due Soon</div><div><b id="redCount">0</b>🔴 Attention</div>
@@ -75,11 +78,15 @@ dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:18px 
 
 <div id="routes"></div>
 
-<section class="status-key">
-  <h2>Status Key</h2>
-  <div class="key-row"><span class="key-dot green-dot">🟢</span><span><strong>0–91 days</strong><small>Green — Current</small></span></div>
-  <div class="key-row"><span class="key-dot amber-dot">🟡</span><span><strong>92–150 days</strong><small>Amber/Yellow — Due Soon</small></span></div>
-  <div class="key-row"><span class="key-dot red-dot">🔴</span><span><strong>151+ days</strong><small>Red — Attention Required</small></span></div>
+<section class="status-key collapsed" id="statusKey">
+  <button class="status-key-toggle" type="button" onclick="toggleStatusKey()" aria-expanded="false">
+    <span>Status Key</span><span class="status-chevron">⌄</span>
+  </button>
+  <div class="status-key-content">
+    <div class="key-row"><span class="key-dot">🟢</span><span><strong>0–91 days</strong><small>Green — Current</small></span></div>
+    <div class="key-row"><span class="key-dot">🟡</span><span><strong>92–150 days</strong><small>Amber/Yellow — Due Soon</small></span></div>
+    <div class="key-row"><span class="key-dot">🔴</span><span><strong>151+ days</strong><small>Red — Attention Required</small></span></div>
+  </div>
 </section>
 
 <div class="top-actions bottom-actions">
@@ -159,6 +166,12 @@ function deleteCoverage(routeId,index){
    save();
    render();
  }
+}
+function toggleStatusKey(){
+ const key=$("statusKey");
+ const button=key.querySelector(".status-key-toggle");
+ const isCollapsed=key.classList.toggle("collapsed");
+ button.setAttribute("aria-expanded",String(!isCollapsed));
 }
 function printRouteCard(){window.print()}
 function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="route-card-backup.json";a.click();URL.revokeObjectURL(a.href)}
