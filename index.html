@@ -80,7 +80,7 @@
     .history-main{font-weight:750}
     .history-sub{color:var(--xc-muted);font-size:.85rem;margin-top:3px}
     .install-note{font-size:.8rem;color:#f5e6e9;align-self:center}
-    .hidden{display:none!important}
+    .quick-plus{position:fixed;right:20px;bottom:calc(24px + env(safe-area-inset-bottom));width:62px;height:62px;border:0;border-radius:50%;background:var(--xc-red);color:#fff;font-size:2.15rem;line-height:1;font-weight:400;box-shadow:0 10px 24px rgba(202,18,63,.35);z-index:20}.quick-plus:active{transform:scale(.96)}.hidden{display:none!important}
     @media(max-width:560px){.summary{gap:7px}.metric{padding:12px}.metric b{font-size:1.28rem}.brand img{height:26px}.admin-grid{grid-template-columns:1fr}}
   </style>
 </head>
@@ -104,12 +104,12 @@
 
     <div class="section-head">
       <div><h2>My route card</h2><div class="count">Days since each diversion was last covered</div></div>
-      <button id="addRouteBtn" class="btn btn-red">+ Add route</button>
+      
     </div>
     <section id="routeList" class="route-list"></section>
 
     <section class="admin">
-      <div style="margin-bottom:16px"><button id="editCardBtn" class="btn btn-red" style="width:100%">Edit route card</button></div>
+      <div id="editCardActions" style="margin-bottom:16px"><button id="editCardBtn" class="btn btn-red" style="width:100%">Edit route card</button></div>
       <div class="section-head"><div><h2>Route card administration</h2><div class="count">Manage routes, history and local backups</div></div></div>
       <div class="admin-grid">
         <button id="historyBtn" class="btn btn-outline">View all route history</button>
@@ -119,6 +119,7 @@
       </div>
     </section>
   </main>
+  <button id="quickCoverageBtn" class="quick-plus" aria-label="Add coverage record">+</button>
 
   <dialog id="routeDialog">
     <div class="dialog-body">
@@ -136,6 +137,9 @@
       <div class="dialog-head"><h2 id="coverageTitle">Record coverage</h2><button class="icon-btn" data-close="coverageDialog">×</button></div>
       <form id="coverageForm">
         <input id="coverageRouteId" type="hidden">
+        <label>Route
+          <select id="coverageRouteSelect" required></select>
+        </label>
         <label>Date covered<input id="coverageDate" type="date" required></label>
         <label>Method
           <select id="coverageMethod" required>
@@ -210,7 +214,7 @@ function render(){
     const el=document.createElement("article");
     el.className="route";
     el.innerHTML=`<div class="route-top"><div><div class="route-name">${esc(route.name)}</div><div class="route-meta">${meta}</div></div><div class="status ${status.key}"><span class="dot"></span>${status.label}</div></div>
-      <div class="route-actions"><button class="btn btn-red" data-cover="${route.id}">Record coverage</button><button class="btn btn-outline" data-history="${route.id}">History</button>${editMode?`<button class="btn btn-ghost" data-delete="${route.id}">Remove</button>`:""}</div>
+      <div class="route-actions"><button class="btn btn-outline" data-history="${route.id}">History</button>${editMode?`<button class="btn btn-ghost" data-delete="${route.id}">Remove</button>`:""}</div>
       <div class="route-meta" style="margin-top:13px"><b>${dayText}</b></div>`;
     list.appendChild(el);
   });
@@ -231,8 +235,13 @@ function showRouteDialog(route){
   document.getElementById("routeDialog").showModal();
 }
 function showCoverage(id){
-  document.getElementById("coverageRouteId").value=id;
-  document.getElementById("coverageTitle").textContent="Record coverage — "+routeById(id).name;
+  const select=document.getElementById("coverageRouteSelect");
+  select.innerHTML=state.routes.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("");
+  const chosen=id||state.routes[0]?.id||"";
+  if(!chosen){alert("Add a route to your route card first.");return;}
+  select.value=chosen;
+  document.getElementById("coverageRouteId").value=chosen;
+  document.getElementById("coverageTitle").textContent="Add coverage record";
   document.getElementById("coverageDate").value=todayLocal();
   document.getElementById("coverageMethod").value="Diversion";
   document.getElementById("coverageHeadcode").value="";
@@ -244,16 +253,19 @@ function showHistory(id){
   document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 }
-document.getElementById("addRouteBtn").onclick=()=>showRouteDialog(null);
+document.getElementById("quickCoverageBtn").onclick=()=>showCoverage(null);
 document.getElementById("routeForm").onsubmit=e=>{
   e.preventDefault(); const id=document.getElementById("routeId").value, name=document.getElementById("routeName").value.trim();
   if(!name) return;
   if(id){routeById(id).name=name;} else state.routes.push({id:crypto.randomUUID(),name,history:[]});
   save(); render(); document.getElementById("routeDialog").close();
 };
+document.getElementById("coverageRouteSelect").addEventListener("change",e=>{
+  document.getElementById("coverageRouteId").value=e.target.value;
+});
 document.getElementById("coverageHeadcode").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
 document.getElementById("coverageForm").onsubmit=e=>{
-  e.preventDefault(); const id=document.getElementById("coverageRouteId").value, date=document.getElementById("coverageDate").value, method=document.getElementById("coverageMethod").value, headcode=document.getElementById("coverageHeadcode").value.trim().toUpperCase();
+  e.preventDefault(); const id=document.getElementById("coverageRouteSelect").value, date=document.getElementById("coverageDate").value, method=document.getElementById("coverageMethod").value, headcode=document.getElementById("coverageHeadcode").value.trim().toUpperCase();
   if(!/^(TAPS|[0-9][A-Z][0-9]{2})$/.test(headcode)){alert("Enter a valid headcode such as 1V50, or TAPS.");return;}
   routeById(id).history.push({id:crypto.randomUUID(),date,method,headcode,createdAt:new Date().toISOString()});
   save(); render(); document.getElementById("coverageDialog").close(); checkNotifications();
@@ -265,11 +277,19 @@ document.getElementById("routeList").onclick=e=>{
   else if(b.dataset.history)showHistory(id);
   else if(b.dataset.delete && confirm(`Remove "${routeById(id).name}" from your route card? History for this route will also be removed from this device.`)){state.routes=state.routes.filter(r=>r.id!==id);save();render();}
 };
-document.getElementById("editCardBtn").onclick=()=>{
-  editMode=!editMode;
-  document.getElementById("editCardBtn").textContent=editMode?"Done editing route card":"Edit route card";
-  render();
-};
+function setupEditCardButton(){
+  const actions=document.getElementById("editCardActions");
+  actions.innerHTML=editMode
+    ? '<div style="display:flex;gap:10px"><button id="addRouteInEditBtn" class="btn btn-outline" style="flex:1">+ Add route</button><button id="editCardBtn" class="btn btn-red" style="flex:1">Done editing</button></div>'
+    : '<button id="editCardBtn" class="btn btn-red" style="width:100%">Edit route card</button>';
+  document.getElementById("editCardBtn").onclick=()=>{
+    editMode=!editMode;
+    setupEditCardButton();
+    render();
+  };
+  if(editMode) document.getElementById("addRouteInEditBtn").onclick=()=>showRouteDialog(null);
+}
+setupEditCardButton();
 document.getElementById("historyBtn").onclick=()=>{
   const all=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name}))).sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent="All route history";
