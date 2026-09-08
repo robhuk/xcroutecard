@@ -172,6 +172,12 @@ const STORAGE_KEY = "route-card-v1";
 function todayLocal(){
   const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
 }
+function formatDateDDMMYYYY(dateStr){
+  if(!dateStr) return "";
+  const parts=String(dateStr).split("-");
+  if(parts.length===3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return String(dateStr);
+}
 function load(){
   try{
     const x=JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -209,7 +215,7 @@ function render(){
     if(status.key==="amber") amber++;
     if(status.key==="red") red++;
     if(days===null || days>91) over91.push(route.name);
-    const meta=last ? `Last covered: <b>${esc(last.date)}</b> · ${esc(last.method)} · ${esc(last.headcode)}` : "No coverage recorded yet";
+    const meta=last ? `Last covered: <b>${esc(formatDateDDMMYYYY(last.date))}</b> · ${esc(last.method)} · ${esc(last.headcode)}` : "No coverage recorded yet";
     const dayText=days===null ? "Days elapsed: Not yet covered" : `Days elapsed: ${days}`;
     const el=document.createElement("article");
     el.className="route";
@@ -250,7 +256,7 @@ function showCoverage(id){
 function showHistory(id){
   const route=routeById(id), hist=[...route.history].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent=route.name+" — history";
-  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${route.id}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(formatDateDDMMYYYY(x.date))} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${route.id}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 }
 document.getElementById("quickCoverageBtn").onclick=()=>showCoverage(null);
@@ -293,7 +299,7 @@ setupEditCardButton();
 document.getElementById("historyBtn").onclick=()=>{
   const all=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name,routeId:r.id}))).sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent="All route history";
-  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${x.routeId}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${esc(formatDateDDMMYYYY(x.date))} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${x.routeId}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 };
 document.getElementById("historyList").onclick=e=>{
@@ -335,13 +341,13 @@ document.getElementById("importInput").onchange=async e=>{
 function exportPDF(){
   const rows=state.routes.map(r=>{
     const l=latest(r), d=l?daysSince(l.date):null, s=statusFor(d);
-    return `<tr><td>${esc(r.name)}</td><td>${d===null?"Not covered":d+" days"}</td><td>${esc(s.label)}</td><td>${l?esc(l.date):"—"}</td><td>${l?esc(l.method):"—"}</td><td>${l?esc(l.headcode):"—"}</td></tr>`;
+    return `<tr><td>${esc(r.name)}</td><td>${d===null?"Not covered":d+" days"}</td><td>${esc(s.label)}</td><td>${l?esc(formatDateDDMMYYYY(l.date)):"—"}</td><td>${l?esc(l.method):"—"}</td><td>${l?esc(l.headcode):"—"}</td></tr>`;
   }).join("");
   const history=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name}))).sort((a,b)=>b.date.localeCompare(a.date))
-    .map(h=>`<tr><td>${esc(h.date)}</td><td>${esc(h.route)}</td><td>${esc(h.method)}</td><td>${esc(h.headcode)}</td></tr>`).join("");
+    .map(h=>`<tr><td>${esc(formatDateDDMMYYYY(h.date))}</td><td>${esc(h.route)}</td><td>${esc(h.method)}</td><td>${esc(h.headcode)}</td></tr>`).join("");
   const w=window.open("","_blank");
   if(!w){alert("Please allow pop-ups to export your Route card as a PDF.");return;}
-  w.document.write(`<!doctype html><html><head><title>Route card — ${todayLocal()}</title><style>body{font-family:Arial,sans-serif;color:#222;padding:24px}.back{position:sticky;top:12px;margin-bottom:16px;background:#ca123f;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}h1{background:#ca123f;color:#fff;padding:18px;border-radius:12px}table{width:100%;border-collapse:collapse;margin:16px 0 30px}th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px}th{background:#f8efe3}@media print{body{padding:0}.back{display:none}h1{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><button class="back" onclick="if(window.opener){window.opener.focus()}window.close()">← Back to main app</button><h1>Route card</h1><p>Exported ${todayLocal()}</p><h2>Current route card</h2><table><thead><tr><th>Route</th><th>Days since covered</th><th>Status</th><th>Last date</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${rows||"<tr><td colspan='6'>No routes</td></tr>"}</tbody></table><h2>Route history</h2><table><thead><tr><th>Date</th><th>Route</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${history||"<tr><td colspan='4'>No history</td></tr>"}</tbody></table><script>window.onafterprint=()=>{if(window.opener)window.opener.focus();};<\/script></body></html>`);
+  w.document.write(`<!doctype html><html><head><title>Route card — ${formatDateDDMMYYYY(todayLocal())}</title><style>body{font-family:Arial,sans-serif;color:#222;padding:24px}.back{position:sticky;top:12px;margin-bottom:16px;background:#ca123f;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}h1{background:#ca123f;color:#fff;padding:18px;border-radius:12px}table{width:100%;border-collapse:collapse;margin:16px 0 30px}th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px}th{background:#f8efe3}@media print{body{padding:0}.back{display:none}h1{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><button class="back" onclick="if(window.opener){window.opener.focus()}window.close()">← Back to main app</button><h1>Route card</h1><p>Exported ${formatDateDDMMYYYY(todayLocal())}</p><h2>Current route card</h2><table><thead><tr><th>Route</th><th>Days since covered</th><th>Status</th><th>Last date</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${rows||"<tr><td colspan='6'>No routes</td></tr>"}</tbody></table><h2>Route history</h2><table><thead><tr><th>Date</th><th>Route</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${history||"<tr><td colspan='4'>No history</td></tr>"}</tbody></table><script>window.onafterprint=()=>{if(window.opener)window.opener.focus();};<\/script></body></html>`);
   w.document.close();
 }
 document.getElementById("pdfBtn").onclick=exportPDF;
