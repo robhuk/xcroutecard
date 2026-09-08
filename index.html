@@ -172,11 +172,6 @@ const STORAGE_KEY = "route-card-v1";
 function todayLocal(){
   const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
 }
-function formatDate(dateStr){
-  if(!dateStr) return "—";
-  const [y,m,d]=String(dateStr).split("-");
-  return `${d} ${m} ${y}`;
-}
 function load(){
   try{
     const x=JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -197,9 +192,9 @@ function latest(route){
 }
 function statusFor(days){
   if(days===null) return {key:"red",label:"Not yet covered"};
-  if(days<=91) return {key:"green",label:"Current"};
-  if(days<=182) return {key:"amber",label:"Due for refresh"};
-  return {key:"red",label:"Overdue"};
+  if(days<=91) return {key:"green",label:"Under 91 days"};
+  if(days<=182) return {key:"amber",label:"92–182 days"};
+  return {key:"red",label:"183+ days"};
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function render(){
@@ -214,8 +209,8 @@ function render(){
     if(status.key==="amber") amber++;
     if(status.key==="red") red++;
     if(days===null || days>91) over91.push(route.name);
-    const meta=last ? `Last covered: <b>${esc(formatDate(last.date))}</b> · ${esc(last.method)} · ${esc(last.headcode)}` : "No coverage recorded yet";
-    const dayText=days===null ? "Days since last coverage: Not yet covered" : `Days since last coverage: ${days} days · ${formatDate(last.date)}`;
+    const meta=last ? `Last covered: <b>${esc(last.date)}</b> · ${esc(last.method)} · ${esc(last.headcode)}` : "No coverage recorded yet";
+    const dayText=days===null ? "Days elapsed: Not yet covered" : `Days elapsed: ${days}`;
     const el=document.createElement("article");
     el.className="route";
     el.innerHTML=`<div class="route-top"><div><div class="route-name">${esc(route.name)}</div><div class="route-meta">${meta}</div></div><div class="status ${status.key}"><span class="dot"></span>${status.label}</div></div>
@@ -255,7 +250,7 @@ function showCoverage(id){
 function showHistory(id){
   const route=routeById(id), hist=[...route.history].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent=route.name+" — history";
-  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(formatDate(x.date))} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${route.id}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${route.id}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 }
 document.getElementById("quickCoverageBtn").onclick=()=>showCoverage(null);
@@ -298,7 +293,7 @@ setupEditCardButton();
 document.getElementById("historyBtn").onclick=()=>{
   const all=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name,routeId:r.id}))).sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent="All route history";
-  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${esc(formatDate(x.date))} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${x.routeId}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${x.routeId}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 };
 document.getElementById("historyList").onclick=e=>{
@@ -308,7 +303,7 @@ document.getElementById("historyList").onclick=e=>{
   if(!route)return;
   const record=route.history.find(h=>h.id===b.dataset.deleteRecord);
   if(!record)return;
-  if(!confirm(`Remove this individual coverage entry for "${route.name}" dated ${formatDate(record.date)}? The route itself will remain on your Route card.`))return;
+  if(!confirm(`Remove this individual coverage entry for "${route.name}" dated ${record.date}? The route itself will remain on your Route card.`))return;
   route.history=route.history.filter(h=>h.id!==record.id);
   save();
   render();
@@ -337,42 +332,17 @@ document.getElementById("importInput").onchange=async e=>{
   e.target.value="";
 };
 
-function pdfEscape(text){return String(text).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");}
-function makeSimplePDF(lines){
-  const content=lines.map((line,i)=>`BT /F1 10 Tf 50 ${800-i*14} Td (${pdfEscape(line)}) Tj ET`).join("\n");
-  const objects=[
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>',
-    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'
-  ];
-  let pdf='%PDF-1.4\n', offsets=[0];
-  objects.forEach((obj,i)=>{offsets[i+1]=pdf.length;pdf+=`${i+1} 0 obj\n${obj}\nendobj\n`;});
-  const xref=pdf.length;
-  pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`+offsets.slice(1).map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('');
-  pdf+=`trailer\n<< /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  return new Blob([pdf],{type:'application/pdf'});
-}
-async function exportPDF(){
-  const name=(prompt("Your name for the Route card report:","")||"").trim();
-  if(!name)return;
-  const generated=formatDate(todayLocal());
-  const lines=[`Route card report for ${name} generated on ${generated}`,"","CURRENT ROUTE CARD"];
-  state.routes.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(r=>{
+function exportPDF(){
+  const rows=state.routes.map(r=>{
     const l=latest(r), d=l?daysSince(l.date):null, s=statusFor(d);
-    lines.push(`${r.name} | Days since last coverage: ${d===null?'Not covered':d} | Status: ${s.label} | Last covered: ${l?formatDate(l.date):'—'}`);
-  });
-  lines.push("","ROUTE HISTORY");
-  state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name}))).sort((a,b)=>b.date.localeCompare(a.date)).forEach(h=>lines.push(`${formatDate(h.date)} | ${h.route} | ${h.method} | ${h.headcode}`));
-  lines.push("","This route diary is self administered; it may not reflect Crewplan data. Use as guidance only.");
-  const blob=makeSimplePDF(lines.slice(0,52));
-  const file=new File([blob],`route-card-report-${todayLocal()}.pdf`,{type:'application/pdf'});
-  if(navigator.canShare && navigator.canShare({files:[file]} && navigator.share){
-    try{await navigator.share({title:'Route card report',text:`Route card report for ${name}`,files:[file]});return;}catch(err){if(err.name==='AbortError')return;}
-  }
-  const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  alert('Your device does not support sharing PDF attachments directly. The PDF has been downloaded so you can attach it to an email.');
+    return `<tr><td>${esc(r.name)}</td><td>${d===null?"Not covered":d+" days"}</td><td>${esc(s.label)}</td><td>${l?esc(l.date):"—"}</td><td>${l?esc(l.method):"—"}</td><td>${l?esc(l.headcode):"—"}</td></tr>`;
+  }).join("");
+  const history=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name}))).sort((a,b)=>b.date.localeCompare(a.date))
+    .map(h=>`<tr><td>${esc(h.date)}</td><td>${esc(h.route)}</td><td>${esc(h.method)}</td><td>${esc(h.headcode)}</td></tr>`).join("");
+  const w=window.open("","_blank");
+  if(!w){alert("Please allow pop-ups to export your Route card as a PDF.");return;}
+  w.document.write(`<!doctype html><html><head><title>Route card — ${todayLocal()}</title><style>body{font-family:Arial,sans-serif;color:#222;padding:24px}.back{position:sticky;top:12px;margin-bottom:16px;background:#ca123f;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}h1{background:#ca123f;color:#fff;padding:18px;border-radius:12px}table{width:100%;border-collapse:collapse;margin:16px 0 30px}th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px}th{background:#f8efe3}@media print{body{padding:0}.back{display:none}h1{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><button class="back" onclick="if(window.opener){window.opener.focus()}window.close()">← Back to Route card</button><h1>Route card</h1><p>Exported ${todayLocal()}</p><h2>Current route card</h2><table><thead><tr><th>Route</th><th>Days since covered</th><th>Status</th><th>Last date</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${rows||"<tr><td colspan='6'>No routes</td></tr>"}</tbody></table><h2>Route history</h2><table><thead><tr><th>Date</th><th>Route</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${history||"<tr><td colspan='4'>No history</td></tr>"}</tbody></table><script>window.onload=()=>window.print();window.onafterprint=()=>{if(window.opener)window.opener.focus();};<\/script></body></html>`);
+  w.document.close();
 }
 document.getElementById("pdfBtn").onclick=exportPDF;
 
