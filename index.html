@@ -75,12 +75,12 @@
     .hint{font-size:.78rem;color:var(--xc-muted);margin-top:-6px}
     .form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:5px}
     .history-list{display:grid;gap:10px}
-    .history-item{padding:12px 0;border-bottom:1px solid #ece8e2}
+    .history-item{position:relative;padding:12px 0;border-bottom:1px solid #ece8e2}
     .history-item:last-child{border-bottom:0}
     .history-main{font-weight:750}
     .history-sub{color:var(--xc-muted);font-size:.85rem;margin-top:3px}
     .install-note{font-size:.8rem;color:#f5e6e9;align-self:center}
-    .quick-plus{position:fixed;right:20px;bottom:calc(24px + env(safe-area-inset-bottom));width:62px;height:62px;border:0;border-radius:50%;background:var(--xc-red);color:#fff;font-size:2.15rem;line-height:1;font-weight:400;box-shadow:0 10px 24px rgba(202,18,63,.35);z-index:20}.quick-plus:active{transform:scale(.96)}.hidden{display:none!important}
+    .quick-plus{position:fixed;right:20px;bottom:calc(24px + env(safe-area-inset-bottom));width:62px;height:62px;border:0;border-radius:50%;background:var(--xc-red);color:#fff;font-size:2.15rem;line-height:1;font-weight:400;box-shadow:0 10px 24px rgba(202,18,63,.35);z-index:20}.quick-plus:active{transform:scale(.96)}.entry-delete{position:absolute;top:10px;right:10px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:#ca123f;font-size:1.8rem;line-height:1;cursor:pointer;font-weight:700}.entry-delete:active{transform:scale(.92)}.hidden{display:none!important}
     @media(max-width:560px){.summary{gap:7px}.metric{padding:12px}.metric b{font-size:1.28rem}.brand img{height:26px}.admin-grid{grid-template-columns:1fr}}
   </style>
 </head>
@@ -110,6 +110,7 @@
 
     <section class="admin">
       <div id="editCardActions" style="margin-bottom:16px"><button id="editCardBtn" class="btn btn-red" style="width:100%">Edit route card</button></div>
+      <div style="margin-bottom:16px"><button id="refreshDataBtn" class="btn btn-outline" style="width:100%">Refresh data</button></div>
       <div class="section-head"><div><h2>Route card administration</h2><div class="count">Manage routes, history and local backups</div></div></div>
       <div class="admin-grid">
         <button id="historyBtn" class="btn btn-outline">View all route history</button>
@@ -169,6 +170,11 @@
 const DEFAULT_ROUTES = ["Newcastle Forth Banks","Newcastle 'Bridges'","S&K","Adwick","Barnsley","Beighton","Rotherham","Erewash Valley","Whitacre/Coleshill PW","Lichfield /X-City"];
 const STORAGE_KEY = "route-card-v1";
 
+function formatDateGB(value){
+  if(!value)return "—";
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  return m ? `${m[3]} ${m[2]} ${m[1]}` : value;
+}
 function todayLocal(){
   const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
 }
@@ -210,7 +216,7 @@ function render(){
     if(status.key==="red") red++;
     if(days===null || days>91) over91.push(route.name);
     const meta=last ? `Last covered: <b>${esc(last.date)}</b> · ${esc(last.method)} · ${esc(last.headcode)}` : "No coverage recorded yet";
-    const dayText=days===null ? "Days elapsed: Not yet covered" : `Days elapsed: ${days}`;
+    const dayText=days===null ? "Days since last refresh: Not yet covered" : `Days since last refresh: ${days}`;
     const el=document.createElement("article");
     el.className="route";
     el.innerHTML=`<div class="route-top"><div><div class="route-name">${esc(route.name)}</div><div class="route-meta">${meta}</div></div><div class="status ${status.key}"><span class="dot"></span>${status.label}</div></div>
@@ -250,7 +256,7 @@ function showCoverage(id){
 function showHistory(id){
   const route=routeById(id), hist=[...route.history].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent=route.name+" — history";
-  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${route.id}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyList").innerHTML=hist.length?hist.map(x=>`<div class="history-item"><div class="history-main">${formatDateGB(x.date)} · ${esc(x.method)}</div><div class="history-sub">${esc(x.headcode)}</div><button class="entry-delete" type="button" aria-label="Remove this entry" title="Remove this entry" data-delete-record="${x.id}" data-route-id="${route.id}">×</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 }
 document.getElementById("quickCoverageBtn").onclick=()=>showCoverage(null);
@@ -290,10 +296,16 @@ function setupEditCardButton(){
   if(editMode) document.getElementById("addRouteInEditBtn").onclick=()=>showRouteDialog(null);
 }
 setupEditCardButton();
+document.getElementById("refreshDataBtn").onclick=()=>{
+  checkStatusChanges();
+  checkNotifications();
+  render();
+  alert("Route card data refreshed.");
+};
 document.getElementById("historyBtn").onclick=()=>{
   const all=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name,routeId:r.id}))).sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById("historyTitle").textContent="All route history";
-  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${esc(x.date)} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div><button class="btn btn-ghost" style="margin-top:10px" data-delete-record="${x.id}" data-route-id="${x.routeId}">Remove entry</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
+  document.getElementById("historyList").innerHTML=all.length?all.map(x=>`<div class="history-item"><div class="history-main">${formatDateGB(x.date)} · ${esc(x.route)}</div><div class="history-sub">${esc(x.method)} · ${esc(x.headcode)}</div><button class="entry-delete" type="button" aria-label="Remove this entry" title="Remove this entry" data-delete-record="${x.id}" data-route-id="${x.routeId}">×</button></div>`).join(""):'<div class="empty">No coverage history recorded.</div>';
   document.getElementById("historyDialog").showModal();
 };
 document.getElementById("historyList").onclick=e=>{
@@ -303,7 +315,7 @@ document.getElementById("historyList").onclick=e=>{
   if(!route)return;
   const record=route.history.find(h=>h.id===b.dataset.deleteRecord);
   if(!record)return;
-  if(!confirm(`Remove this individual coverage entry for "${route.name}" dated ${record.date}? The route itself will remain on your Route card.`))return;
+  if(!confirm(`Remove this individual coverage entry for "${route.name}" dated ${formatDateGB(record.date)}? The route itself will remain on your Route card.`))return;
   route.history=route.history.filter(h=>h.id!==record.id);
   save();
   render();
@@ -333,35 +345,110 @@ document.getElementById("importInput").onchange=async e=>{
 };
 
 function exportPDF(){
+  const reportName=(prompt("Enter your name for the Route card report:")||"").trim();
+  if(!reportName)return;
+
+  const generated=formatDateGB(todayLocal());
   const rows=state.routes.map(r=>{
     const l=latest(r), d=l?daysSince(l.date):null, s=statusFor(d);
-    return `<tr><td>${esc(r.name)}</td><td>${d===null?"Not covered":d+" days"}</td><td>${esc(s.label)}</td><td>${l?esc(l.date):"—"}</td><td>${l?esc(l.method):"—"}</td><td>${l?esc(l.headcode):"—"}</td></tr>`;
+    return `<tr><td>${esc(r.name)}</td><td>${d===null?"Not covered":d+" days"}</td><td>${esc(s.label)}</td><td>${l?formatDateGB(l.date):"—"}</td><td>${l?esc(l.method):"—"}</td><td>${l?esc(l.headcode):"—"}</td></tr>`;
   }).join("");
   const history=state.routes.flatMap(r=>r.history.map(h=>({...h,route:r.name}))).sort((a,b)=>b.date.localeCompare(a.date))
-    .map(h=>`<tr><td>${esc(h.date)}</td><td>${esc(h.route)}</td><td>${esc(h.method)}</td><td>${esc(h.headcode)}</td></tr>`).join("");
+    .map(h=>`<tr><td>${formatDateGB(h.date)}</td><td>${esc(h.route)}</td><td>${esc(h.method)}</td><td>${esc(h.headcode)}</td></tr>`).join("");
+
   const w=window.open("","_blank");
   if(!w){alert("Please allow pop-ups to export your Route card as a PDF.");return;}
-  w.document.write(`<!doctype html><html><head><title>Route card — ${todayLocal()}</title><style>body{font-family:Arial,sans-serif;color:#222;padding:24px}.back{position:sticky;top:12px;margin-bottom:16px;background:#ca123f;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}h1{background:#ca123f;color:#fff;padding:18px;border-radius:12px}table{width:100%;border-collapse:collapse;margin:16px 0 30px}th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px}th{background:#f8efe3}@media print{body{padding:0}.back{display:none}h1{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><button class="back" onclick="if(window.opener){window.opener.focus()}window.close()">← Back to Route card</button><h1>Route card</h1><p>Exported ${todayLocal()}</p><h2>Current route card</h2><table><thead><tr><th>Route</th><th>Days since covered</th><th>Status</th><th>Last date</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${rows||"<tr><td colspan='6'>No routes</td></tr>"}</tbody></table><h2>Route history</h2><table><thead><tr><th>Date</th><th>Route</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${history||"<tr><td colspan='4'>No history</td></tr>"}</tbody></table><script>window.onload=()=>window.print();window.onafterprint=()=>{if(window.opener)window.opener.focus();};<\/script></body></html>`);
+
+  const safeName=esc(reportName);
+  w.document.write(`<!doctype html><html><head><title>Route card report — ${safeName}</title><style>
+    body{font-family:Arial,sans-serif;color:#222;padding:24px}
+    .back{position:sticky;top:12px;margin-bottom:16px;background:#ca123f;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}
+    h1{background:#ca123f;color:#fff;padding:18px;border-radius:12px;margin-bottom:8px}
+    .report-subtitle{font-size:15px;font-weight:700;margin:0 0 22px}
+    table{width:100%;border-collapse:collapse;margin:16px 0 30px}
+    th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px}
+    th{background:#f8efe3}
+    .footer{margin-top:36px;padding-top:14px;border-top:1px solid #ccc;font-size:11px;color:#555}
+    @media print{body{padding:0}.back{display:none}h1{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  </style></head><body>
+  <button class="back" onclick="if(window.opener){window.opener.focus()}window.close()">← Back to Route card</button>
+  <h1>Route card</h1>
+  <p class="report-subtitle">Route card report for ${safeName} generated on ${generated}</p>
+  <h2>Current route card</h2>
+  <table><thead><tr><th>Route</th><th>Days since last refresh</th><th>Status</th><th>Last date</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${rows||"<tr><td colspan='6'>No routes</td></tr>"}</tbody></table>
+  <h2>Route history</h2>
+  <table><thead><tr><th>Date</th><th>Route</th><th>Method</th><th>Headcode / TAPS</th></tr></thead><tbody>${history||"<tr><td colspan='4'>No history</td></tr>"}</tbody></table>
+  <footer class="footer">This route diary is self administered. It may not reflect Crewplan data. Use as guidance only.</footer>
+  <script>window.onload=()=>window.print();window.onafterprint=()=>{if(window.opener)window.opener.focus();};<\/script>
+  </body></html>`);
   w.document.close();
 }
 document.getElementById("pdfBtn").onclick=exportPDF;
 
 
-async function checkNotifications(){
+async function statusSnapshot(){
+  const snapshot={};
+  state.routes.forEach(r=>{
+    const l=latest(r), d=l?daysSince(l.date):null, s=statusFor(d);
+    snapshot[r.id]={name:r.name,status:s.label};
+  });
+  return snapshot;
+}
+function checkStatusChanges(){
+  const key="route-card-status-snapshot";
+  const previous=JSON.parse(localStorage.getItem(key)||"null");
+  const current=statusSnapshot();
+  if(previous && "Notification" in window && Notification.permission==="granted"){
+    Object.entries(current).forEach(([id,info])=>{
+      if(previous[id] && previous[id].status!==info.status){
+        new Notification("Route card reminder",{
+          body:`${info.name} status changed to ${info.status}.`
+        });
+      }
+    });
+  }
+  localStorage.setItem(key,JSON.stringify(current));
+}
+function checkNotifications(){
   const overdue=state.routes.filter(r=>{const l=latest(r);const d=l?daysSince(l.date):null;return d===null||d>91});
   if(Notification.permission==="granted" && overdue.length && "serviceWorker" in navigator){
     const reg=await navigator.serviceWorker.ready;
     reg.showNotification("Route card reminder",{body:`${overdue.length} route${overdue.length===1?" is":"s are"} over 91 days since coverage.`,icon:"icon-192.png",badge:"icon-192.png",tag:"route-card-overdue"});
   }
 }
-if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js");
-render();
-setTimeout(async()=>{
+let deferredInstallPrompt=null;
+let firstUsePromptShown=sessionStorage.getItem("route-card-first-use-prompt")==="1";
+
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  if(!firstUsePromptShown){
+    firstUsePromptShown=true;
+    sessionStorage.setItem("route-card-first-use-prompt","1");
+    setTimeout(async()=>{
+      if(confirm("Install Route card on this device for standalone offline use?")){
+        try{
+          await deferredInstallPrompt.prompt();
+          await deferredInstallPrompt.userChoice;
+        }catch(e){}
+      }
+      if("Notification" in window && Notification.permission==="default"){
+        try{await Notification.requestPermission();}catch(e){}
+      }
+    },700);
+  }
+});
+
+window.addEventListener("appinstalled",async()=>{
+  deferredInstallPrompt=null;
   if("Notification" in window && Notification.permission==="default"){
     try{await Notification.requestPermission();}catch(e){}
   }
-  checkNotifications();
-},900);
+});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js");
+render();
+checkStatusChanges();
+setTimeout(()=>checkNotifications(),900);
 </script>
 </body>
 </html>
